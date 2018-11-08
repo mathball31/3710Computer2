@@ -1,0 +1,15 @@
+// commandList.txt
+// Comments are allowed - yay!
+// This is where our list of commands can be found, such as what to do when a
+// certain motion is recorded, or the CPU inputs a certain instruction.
+
+// For now, empty
+// First address is 512
+
+dead
+beaf
+00cc		// 16'h00CC (204) placed into third address
+00aa		// 16'h00AA	(170) placed into fourth address
+//@0002						// go to address 2
+//0056	// 16'h0056 (86) placed into address 2?
+//0174		// 16'h0174 (372) placed into address 1?

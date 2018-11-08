@@ -1,0 +1,12 @@
+// FSM/Datapath Test Program 7:  Simple NOT
+
+// 1:  Add immediate 2 into r7
+// 0101_0111_0000_0010
+5002
+
+// 2:  NOT r7
+// 0000_0111_0100_0000
+
+
+// Result:  r7 should be 13, or 0xD?
+// or would r7 be 1111_1111_1111_1101, 0xFFFD?

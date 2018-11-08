@@ -1,0 +1,15 @@
+// FSM/Datapath Test Program 3:  Simple Add
+
+// 1:  Add immediate 12 into r4
+// 0101_0100_0000_1100
+540C
+
+// 2:  Add immediate 10 into r6
+// 0101_0110_0000_1010
+560A
+
+// 3:  Add r4 and r6, put into r6
+// 0000_0110_0101_0100
+0654
+
+// Result should be:  r6 = 22, or 0x16

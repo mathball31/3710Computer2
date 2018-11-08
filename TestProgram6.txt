@@ -1,0 +1,15 @@
+// FSM/Datapath Test Program 6:  Simple XOR
+
+// 1:  Add immediate 2 into r0
+// 0101_0000_0000_0010
+5002
+
+// 2:  Add immediate 10 into r10
+// 0101_1010_0000_1010
+5A0A
+
+// 3:  OR r0 and r10, store in r10
+// 0000_1010_0011_0000
+0A10
+
+// Result:  r10 should be 8, or 0x8

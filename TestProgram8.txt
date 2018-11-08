@@ -1,0 +1,7 @@
+// FSM/Datapath Test Program 8:  Simple Load/Stor
+
+// 1:  Add immediate 11 into r0
+
+// 2:  Store the value from r0 into memory address xxxx
+
+// 3:  Load the value from memory address xxxx into r1
