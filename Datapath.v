@@ -40,33 +40,23 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	// Mux4to16 regEnable(opcode[11:8], reg_en);
 	// new stuuuff
 	
-	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel;  // Output from FSM
+	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel, flag_en, alu_sel;  // Output from FSM
 	wire [3:0] mux_A_sel, mux_B_sel;
 	wire [15:0] data_b; // TODO these don't do anything; refer to mem declaration comments
 	wire [9:0] addr_b; // TODO these don't do anything; refer to mem declaration comments
 	wire [9:0] pc_out;
 	wire pc_ld = 0; // TODO Depends on load instruction. Will come from FSM later
 	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0]; 
+	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
 	wire [15:0] mem_out_a, mem_out_b;
-	wire flag_en;
 	
-	RegBank regFile(alu_bus, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, reg_en, clk, reset);
+	RegBank regFile(reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, reg_en, clk, reset);
 
 	RegMux muxA(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_A_sel, mux_A_out);
 
 	RegMux muxB(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_B_sel, mux_B_out);
 	
 	ALU alu(mux_A_out, mux_B_out, opcode, flags, Cin, alu_bus);
-	
-	
-	
-	/*
-	always @(pc_mux) 
-	begin
-		if(pc_mux) pc_mux_out = pc_out;
-		else pc_mux_out = mux_A_out;
-	end
-	*/
 	
 	ProgramCounter pc(clk, reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
 	
@@ -75,7 +65,7 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	// care of immediate instructions)
 	Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, w_en_a, w_en_b, reg_en, flag_en, pc_en);
+	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, w_en_a, w_en_b, reg_en, flag_en, alu_sel, pc_en);
 	
 
 endmodule
