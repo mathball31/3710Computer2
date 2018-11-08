@@ -1,13 +1,14 @@
 
 
-module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en);
+module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
+	mem_w_en_a, mem_w_en_b, reg_en, flag_en, alu_sel, pc_en);
 
 	input clk, reset;
 	input [15:0] data;
 	input [4:0] flags;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
-	output reg pc_sel, imm_sel, mem_w_en_a, mem_w_en_b, flag_en, pc_en;
+	output reg pc_sel, imm_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en;
 	
 	wire [15:0] mux_out;
 	reg [3:0] state;
@@ -22,44 +23,6 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 	parameter LOAD_2		= 4'b0111;
 	parameter JUMP_1		= 4'b1000;
 	parameter JUMP_2		= 4'b1001;
-
-	
-
-//	
-//	RegBank regFile(AluBus, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, RegEnable, Clk, Reset);
-//
-//	RegMux muxA(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, Opcode[11:8], muxAout);
-//
-//	RegMux muxB(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, Opcode[3:0], muxBout);
-//
-//	ALU alu(muxAout, muxBout, Opcode, Flags, Cin, ALUbus);
-//	
-//	Memory mem(data_a, data_b, addr_a, addr_b, we_a, we_b, clk, mem_out_a, mem_out_b);
-//	
-//	ProgramCounter pc(clk, reset, pc_en, pc_ld, pc_in, pc_out);
-
-/*
-	initial
-	begin
-		pc_sel = 1'b1; // TODO modify depending on state
-		imm_sel = 1'b0; // TODO modify depending on state
-		mem_w_en_a = 1'b0; // TODO modify depending on state
-		mem_w_en_b = 1'b0; // TODO modify depending on state
-		flag_en = 1'b1; // TODO modify depending on state
-		pc_en = 1'b1; // TODO modify depending on state
-	end
-	*/
-	
-	// For reg to reg, data from memory is the opcode.
-	/*always @ *
-	begin
-		opcode = data;
-		mux_A_sel = opcode[11:8];
-		mux_B_sel = opcode[3:0];
-		
-		reg_en = mux_out;
-	end
-	*/
 	
 	
 	//TODO sensitivity list
@@ -78,6 +41,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				reg_en = 1'b0;
 				mem_w_en_a = 1'b0;
 				mem_w_en_b = 1'b0;
+				alu_sel = 1'b1; // alu_sel = 1 means use alu_bus.
 				pc_sel = 1'b1;
 				opcode = 16'bx;
 				reg_en = 16'bx;
@@ -137,6 +101,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				mux_B_sel = opcode[3:0];  	// Source
 				
 				reg_en = mux_out;
+				alu_sel = 1'b1;
 				pc_en = 0;
 				
 				state = R_TYPE_2;
@@ -152,32 +117,53 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 			
 			STORE_1:
 			begin
-				
+				reg_en = 16'bx; // Don't write to a reg yet.
+				opcode = 16'bx;
+				pc_sel = 1'b0;
+				pc_en = 1'b0;
 			end
 			
 			STORE_2:
 			begin
-				
+				reg_en = 16'bx;
+				opcode = 16'bx;
 			end
 			
 			LOAD_1:
 			begin
-			
+				reg_en = 16'bx;
+				opcode = 16'bx;
+				alu_sel = 1'b0; // alu_sel = 0 means use mem_out (data)
+				pc_en = 1'b0;
+				pc_sel = 1'b0;
+				mem_w_en_a = 1'b0;
+				mem_w_en_b = 1'b0;
+				// Destination register set by Mux4to16.
+				mux_A_sel = opcode[3:0];  	// Address 
+				
+				state = LOAD_2;
 			end
 			
 			LOAD_2:
 			begin
-			
+				reg_en = 16'bx;
+				opcode = 16'bx;
+				pc_en = 1'b1;
+				pc_sel = 1'b1;
+				alu_sel = 1'b1;
+				state = FETCH;
 			end
 			
 			JUMP_1:
 			begin
-			
+				reg_en = 16'bx;
+				opcode = 16'bx;
 			end
 			
 			JUMP_2:
 			begin
-			
+				reg_en = 16'bx;
+				opcode = 16'bx;
 			end			
 		endcase
 	end
