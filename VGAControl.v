@@ -1,5 +1,4 @@
 
-
 /*	FPGA has a 50MHz clock and a 25MHz clock - we'll start with 50MHz
 
 	SVGA 800x600 @ 60Hz refresh and 40MHz pixel clock - we may need a wrapper for this
@@ -26,7 +25,12 @@
 	
 	A = sync pulse length		B = back porch		C = active video time		D = front porch		F = total frame time
 	To find the clock cycles, multiply the lines with the total scanline time of the HSync
+	
+	Only cares about the HSync and VSync and the falling edge of those pulses
+	This file should only be about timing - BitGen takes care of all the drawing.
 */
 module VGAcontrol ();
+
+	// hsync, vsync, hcount, vcount, bright (?)
 
 endmodule
