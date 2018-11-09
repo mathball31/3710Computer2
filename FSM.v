@@ -16,7 +16,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
   	parameter RESET		= 4'b0000;
 	parameter FETCH 		= 4'b0001;
 	parameter R_TYPE_1	= 4'b0010;
-	parameter R_TYPE_2	= 4'b0011;
+	parameter PRE_FETCH	= 4'b0011;
 	parameter STORE_1		= 4'b0100;
 	parameter STORE_2		= 4'b0101;
 	parameter LOAD_1		= 4'b0110;
@@ -108,15 +108,16 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				alu_sel = 1'b1;
 				pc_en = 0;
 				
-				state = R_TYPE_2;
+				state = PRE_FETCH;
 			end
 			
 			// 3
-			R_TYPE_2:
+			PRE_FETCH:
 			begin
 				reg_en = 16'bx;
 				opcode = 16'bx;
 				pc_en = 1'b1; // TODO
+				mem_w_en_a = 1'b0;
 				state = FETCH;
 			end
 			
@@ -127,13 +128,22 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				opcode = 16'bx;
 				pc_sel = 1'b0;
 				pc_en = 1'b0;
+				mem_w_en_a = 1'b1;
+				mux_B_sel = data[11:8]; // source from which to store
+				mux_A_sel = data[3:0];  // destination address
+				
+				state = STORE_2;
 			end
 			
 			// 5
 			STORE_2:
 			begin
-				reg_en = 16'bx;
 				opcode = 16'bx;
+				pc_en = 1'b0;
+				pc_sel = 1'b1;
+				mem_w_en_a = 1'b1;
+
+				state = PRE_FETCH;
 			end
 			
 			// 6
@@ -159,7 +169,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				pc_en = 1'b0;
 				pc_sel = 1'b1;
 				alu_sel = 1'b0; // alu_sel = 0 means use mem_out (data)
-				state = R_TYPE_2;
+				state = PRE_FETCH;
 			end
 			
 			// 8

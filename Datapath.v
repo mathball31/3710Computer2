@@ -65,7 +65,8 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	// care of immediate instructions)
 	Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, w_en_a, w_en_b, reg_en, flag_en, alu_sel, pc_en);
+	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
+		w_en_a, w_en_b, reg_en, flag_en, alu_sel, pc_en);
 	
 
 endmodule
