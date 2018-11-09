@@ -18,7 +18,7 @@ module Memory
 		// TODO This file path needs to change for your personal laptop 
 		//$readmemh("C:/Users/dirkl/Documents/3710Computer2/TestProgram1.txt", ram);
 		//$readmemh("C:/Users/sator/Documents/3710Project/3710Computer2/hex_mem.mem", ram);
-		$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/TestProgram1.txt", ram);
+		$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/1RtoRComplexTest.txt", ram);
 	end
 
 	// Port A 
@@ -26,12 +26,12 @@ module Memory
 	begin
 		if (we_a) 
 		begin
-			ram[addr_a] <= data_a;
-			q_a <= data_a;
+			ram[addr_a] = data_a;
+			q_a = data_a;
 		end
 		else 
 		begin
-			q_a <= ram[addr_a];
+			q_a = ram[addr_a];
 		end 
 	end 
 
@@ -40,12 +40,12 @@ module Memory
 	begin
 		if(we_b)
 		begin
-			ram[addr_b] <= data_b;
-			q_b <= data_b;
+			ram[addr_b] = data_b;
+			q_b = data_b;
 		end
 		else 
 		begin
-			q_b <= ram[addr_b];
+			q_b = ram[addr_b];
 		end 
 	end
 

@@ -34,6 +34,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 		end
 	
 		case (state)
+			// 0
 			RESET:
 			begin
 				//pc_en = 1'b0;
@@ -54,11 +55,12 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				
 				else 
 				begin
-					pc_en = 1'b1;
+					pc_en = 1'b1;  // TODO
 					state = FETCH;
 				end
 			end
 			
+			// 1
 			FETCH:
 			begin
 				pc_en = 1'b0;
@@ -67,6 +69,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				mem_w_en_a = 1'b0;
 				mem_w_en_b = 1'b0;
 				pc_sel = 1'b1;
+				alu_sel = 1'b1;
 				opcode = 16'bx;
 				reg_en = 16'bx;
 				
@@ -94,11 +97,12 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				end
 			end
 			
+			// 2
 			R_TYPE_1:
 			begin
 				opcode = data;
-				mux_A_sel = opcode[11:8];	// Destination
-				mux_B_sel = opcode[3:0];  	// Source
+				mux_A_sel = data[11:8];	// Destination
+				mux_B_sel = data[3:0];  	// Source
 				
 				reg_en = mux_out;
 				alu_sel = 1'b1;
@@ -107,14 +111,16 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				state = R_TYPE_2;
 			end
 			
+			// 3
 			R_TYPE_2:
 			begin
 				reg_en = 16'bx;
 				opcode = 16'bx;
-				pc_en = 1;
+				pc_en = 1'b1; // TODO
 				state = FETCH;
 			end
 			
+			// 4
 			STORE_1:
 			begin
 				reg_en = 16'bx; // Don't write to a reg yet.
@@ -123,43 +129,47 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				pc_en = 1'b0;
 			end
 			
+			// 5
 			STORE_2:
 			begin
 				reg_en = 16'bx;
 				opcode = 16'bx;
 			end
 			
+			// 6
 			LOAD_1:
 			begin
-				reg_en = 16'bx;
 				opcode = 16'bx;
-				alu_sel = 1'b0; // alu_sel = 0 means use mem_out (data)
 				pc_en = 1'b0;
 				pc_sel = 1'b0;
 				mem_w_en_a = 1'b0;
 				mem_w_en_b = 1'b0;
 				// Destination register set by Mux4to16.
-				mux_A_sel = opcode[3:0];  	// Address 
+				mux_A_sel = data[3:0];  	// Address 
+				reg_en = mux_out;
+
 				
 				state = LOAD_2;
 			end
 			
+			// 7
 			LOAD_2:
 			begin
-				reg_en = 16'bx;
 				opcode = 16'bx;
-				pc_en = 1'b1;
+				pc_en = 1'b0;
 				pc_sel = 1'b1;
-				alu_sel = 1'b1;
-				state = FETCH;
+				alu_sel = 1'b0; // alu_sel = 0 means use mem_out (data)
+				state = R_TYPE_2;
 			end
 			
+			// 8
 			JUMP_1:
 			begin
 				reg_en = 16'bx;
 				opcode = 16'bx;
 			end
-			
+			 
+			// 9
 			JUMP_2:
 			begin
 				reg_en = 16'bx;

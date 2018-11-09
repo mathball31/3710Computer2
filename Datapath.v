@@ -46,9 +46,9 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	wire [9:0] addr_b; // TODO these don't do anything; refer to mem declaration comments
 	wire [9:0] pc_out;
 	wire pc_ld = 0; // TODO Depends on load instruction. Will come from FSM later
-	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0]; 
-	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
+	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0];	
 	wire [15:0] mem_out_a, mem_out_b;
+	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
 	
 	RegBank regFile(reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, reg_en, clk, reset);
 
