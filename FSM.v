@@ -1,22 +1,23 @@
 
 
-module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
+module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
 	mem_w_en_a, mem_w_en_b, reg_en, flag_en, alu_sel, pc_en);
 
 	input clk, reset;
-	input [15:0] data;
+	input [15:0] mem_in;
 	input [4:0] flags;
-	output reg [15:0] opcode, reg_en;
+	output reg [15:0] data_out, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
 	output reg pc_sel, imm_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en;
 	
 	wire [15:0] mux_out;
 	reg [3:0] state;
+	reg [15:0] instruction;
 	
-  	parameter RESET		= 4'b0000;
-	parameter FETCH 		= 4'b0001;
-	parameter R_TYPE_1	= 4'b0010;
-	parameter PRE_FETCH	= 4'b0011;
+	parameter RESET		= 4'b0000;
+	parameter PRE_FETCH 	= 4'b0001;
+	parameter FETCH		= 4'b0010;
+	parameter R_TYPE_1	= 4'b0011;
 	parameter STORE_1		= 4'b0100;
 	parameter STORE_2		= 4'b0101;
 	parameter LOAD_1		= 4'b0110;
@@ -44,7 +45,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				mem_w_en_b = 1'b0;
 				alu_sel = 1'b1; // alu_sel = 1 means use alu_bus.
 				pc_sel = 1'b1;
-				opcode = 16'bx;
+				data_out = 16'bx;
 				reg_en = 16'bx;
 				
 				if (reset) 
@@ -55,12 +56,24 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				
 				else 
 				begin
-					pc_en = 1'b1;  // TODO
-					state = FETCH;
+					pc_en = 1'b0;  // TODO
+					state = PRE_FETCH;
 				end
 			end
 			
 			// 1
+			PRE_FETCH:
+			begin
+				reg_en = 16'bx;
+				data_out = 16'bx;
+				pc_en = 1'b1; // TODO
+				pc_sel = 1'b1;
+
+				mem_w_en_a = 1'b0;
+				state = FETCH;
+			end
+			
+			// 2
 			FETCH:
 			begin
 				pc_en = 1'b0;
@@ -70,17 +83,18 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				mem_w_en_b = 1'b0;
 				pc_sel = 1'b1;
 				alu_sel = 1'b1;
-				opcode = 16'bx;
+				data_out = 16'bx;
 				reg_en = 16'bx;
-				
-				if (data[15:12] != 4'b0100) 
+				instruction = mem_in;
+
+				if (instruction[15:12] != 4'b0100) 
 				begin
 					state = R_TYPE_1;
 				end
 				
-				else if (data[15:12] == 4'b0100)
+				else if (instruction[15:12] == 4'b0100)
 				begin
-					case (data[7:4])
+					case (instruction[7:4])
 						4'b0000:
 						begin
 							state = LOAD_1;
@@ -97,12 +111,12 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				end
 			end
 			
-			// 2
+			// 3
 			R_TYPE_1:
 			begin
-				opcode = data;
-				mux_A_sel = data[11:8];	// Destination
-				mux_B_sel = data[3:0];  	// Source
+				data_out = instruction;
+				mux_A_sel = instruction[11:8];	// Destination
+				mux_B_sel = instruction[3:0];  	// Source
 				
 				reg_en = mux_out;
 				alu_sel = 1'b1;
@@ -111,26 +125,17 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 				state = PRE_FETCH;
 			end
 			
-			// 3
-			PRE_FETCH:
-			begin
-				reg_en = 16'bx;
-				opcode = 16'bx;
-				pc_en = 1'b1; // TODO
-				mem_w_en_a = 1'b0;
-				state = FETCH;
-			end
 			
 			// 4
 			STORE_1:
 			begin
 				reg_en = 16'bx; // Don't write to a reg yet.
-				opcode = 16'bx;
+				data_out = 16'bx;
 				pc_sel = 1'b0;
 				pc_en = 1'b0;
 				mem_w_en_a = 1'b1;
-				mux_B_sel = data[11:8]; // source from which to store
-				mux_A_sel = data[3:0];  // destination address
+				mux_B_sel = instruction[11:8]; // source from which to store
+				mux_A_sel = instruction[3:0];  // destination address
 				
 				state = STORE_2;
 			end
@@ -138,10 +143,10 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 			// 5
 			STORE_2:
 			begin
-				opcode = 16'bx;
+				data_out = 16'bx;
 				pc_en = 1'b0;
 				pc_sel = 1'b1;
-				mem_w_en_a = 1'b1;
+				mem_w_en_a = 1'b0;
 
 				state = PRE_FETCH;
 			end
@@ -149,13 +154,13 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 			// 6
 			LOAD_1:
 			begin
-				opcode = 16'bx;
+				data_out = 16'bx;
 				pc_en = 1'b0;
 				pc_sel = 1'b0;
 				mem_w_en_a = 1'b0;
 				mem_w_en_b = 1'b0;
 				// Destination register set by Mux4to16.
-				mux_A_sel = data[3:0];  	// Address 
+				mux_A_sel = instruction[3:0];  	// Address 
 				reg_en = mux_out;
 
 				
@@ -165,10 +170,10 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 			// 7
 			LOAD_2:
 			begin
-				opcode = 16'bx;
+				data_out = 16'bx;
 				pc_en = 1'b0;
 				pc_sel = 1'b1;
-				alu_sel = 1'b0; // alu_sel = 0 means use mem_out (data)
+				alu_sel = 1'b0; // alu_sel = 0 means use output from memory (mem_in)
 				state = PRE_FETCH;
 			end
 			
@@ -176,14 +181,14 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 			JUMP_1:
 			begin
 				reg_en = 16'bx;
-				opcode = 16'bx;
+				data_out = 16'bx;
 			end
 			 
 			// 9
 			JUMP_2:
 			begin
 				reg_en = 16'bx;
-				opcode = 16'bx;
+				data_out = 16'bx;
 			end			
 		endcase
 	end
@@ -191,7 +196,7 @@ module FSM(clk, reset, data, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_se
 
 	
 	
-	Mux4to16 regEnable(data[11:8], mux_out);
+	Mux4to16 regEnable(mem_in[11:8], mux_out);
 
 
 endmodule
