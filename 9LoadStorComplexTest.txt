@@ -17,7 +17,6 @@
 5209
 
 // 5:  Add immediate 241 into r3 for address value
-// **Or grab value directly from a value stored in memory.  How to place a value directly in memory without touching registers?
 // 16'b0101_0011_1111_0001
 53F1
 
@@ -25,17 +24,32 @@
 // 16'b0100_0010_0100_0011
 4243
 
-// 7:  Load the value from memory address r1 into r4
+// 7:  Load the value from memory address r1 into r4 (11)
 // 16'b0100_0100_0000_0001
 4401
 
-// 8:  Load the value from memory address r3 into r5
+// 8:  Load the value from memory address r3 into r5 (9)
 // 16'b0100_0101_0000_0011
 4503
 
+// 9:  Add r5 to r4 and store it in r5
+// 16'b0000_0101_0101_0100
+0554
 
+// 10:  Store the value from r5 into memory address r1
+// 16'b0100_0101_0100_0001
+4541
 
+// 11:  Add r5 to r5 and store it in r5
+// 0000_0101_0101_0101
+0555
 
-// 4:  Load the value from memory address r1 into r2
-// 16'b0100_0010_0000_0001
-4201
+// 12:  Load the value from memory address r1 into r6 (20)
+// 16'b0100_0110_0000_0001
+4601
+
+// 13:  Add r6 to r5 and store it in r6 (20 + 40)
+// 16'b0000_0110_0101_0101
+0655
+
+// Result:  r6 = 60 (0x3C)
