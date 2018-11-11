@@ -56,7 +56,7 @@ endmodule
 
 // Structural Implementation of RegBank
 /********/
-module RegBank(ALUBus, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, regEnable, clk, reset);
+module RegBank(clk, reset, regEnable, ALUBus, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
 	input clk, reset;
 	input [15:0] ALUBus;
 	input [15:0] regEnable;
