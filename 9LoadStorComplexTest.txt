@@ -1,54 +1,54 @@
 // FSM/Datapath Test Program 9:  Complex Load/Stor
 
-// 1:  Add immediate 11 into r0
+// 0:  Add immediate 11 into r0
 // 16'b0101_0000_0000_1011;
 500B
 
-// 2:  Add immediate 240 into r1 for address value
+// 1:  Add immediate 240 into r1 for address value
 // 16'b0101_0001_1111_0000
 51F0
 
-// 3:  Store the value from r0 into memory address r1
+// 2:  Store the value from r0 into memory address r1
 // 16'b0100_0000_0100_0001
 4041
 
-// 4:  Add immediate 9 into r2
+// 3:  Add immediate 9 into r2
 // 16'b0101_0010_0000_1001
 5209
 
-// 5:  Add immediate 241 into r3 for address value
+// 4:  Add immediate 241 into r3 for address value
 // 16'b0101_0011_1111_0001
 53F1
 
-// 6:  Store the value from r2 into memory address r3
+// 5:  Store the value from r2 into memory address r3
 // 16'b0100_0010_0100_0011
 4243
 
-// 7:  Load the value from memory address r1 into r4 (11)
+// 6:  Load the value from memory address r1 into r4 (11)
 // 16'b0100_0100_0000_0001
 4401
 
-// 8:  Load the value from memory address r3 into r5 (9)
+// 7:  Load the value from memory address r3 into r5 (9)
 // 16'b0100_0101_0000_0011
 4503
 
-// 9:  Add r5 to r4 and store it in r5
+// 8:  Add r5 to r4 and store it in r5
 // 16'b0000_0101_0101_0100
 0554
 
-// 10:  Store the value from r5 into memory address r1
+// 9:  Store the value from r5 into memory address r1
 // 16'b0100_0101_0100_0001
 4541
 
-// 11:  Add r5 to r5 and store it in r5
+// 10:  Add r5 to r5 and store it in r5
 // 0000_0101_0101_0101
 0555
 
-// 12:  Load the value from memory address r1 into r6 (20)
+// 11:  Load the value from memory address r1 into r6 (20)
 // 16'b0100_0110_0000_0001
 4601
 
-// 13:  Add r6 to r5 and store it in r6 (20 + 40)
+// 12:  Add r6 to r5 and store it in r6 (20 + 40)
 // 16'b0000_0110_0101_0101
 0655
 
