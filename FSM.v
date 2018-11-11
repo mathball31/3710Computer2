@@ -26,7 +26,6 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 	parameter JUMP_2		= 4'b1001;
 	
 	
-	//TODO sensitivity list
 	always @(posedge clk)
 	begin
 		if (reset)
@@ -35,10 +34,11 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 		end
 	
 		case (state)
+			
 			// 0
 			RESET:
 			begin
-				opcode 	= 16'bx;
+				opcode 		= 16'bx;
 				mux_A_sel 	= 4'bx;
 				mux_B_sel 	= 4'bx;
 				alu_sel 		= 1'b1;
@@ -62,8 +62,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			
 			// 1
 			FETCH_1:
-			begin
-			
+			begin			
 				opcode 		= 16'bx;
 				mux_A_sel 	= 16'bx;
 				mux_B_sel	= 16'bx;
@@ -75,30 +74,14 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				flag_en 		= 1'b0;
 				pc_en 		= 1'b1;
 				instruction = 16'bx;
-			
-				//reg_en = 16'bx;
-				//opcode = 16'bx
-				//mem_w_en_a = 1'b0;
-				state = FETCH_2;
+				state 		= FETCH_2;
 			end
 			
 			// 2
 			FETCH_2:
 			begin
-				pc_en = 1'b0;
+				pc_en 		= 1'b0;
 				instruction = mem_in;
-			
-			
-//				pc_en = 1'b0;
-//				flag_en = 1'b0;
-//				reg_en = 1'b0;
-//				mem_w_en_a = 1'b0;
-//				mem_w_en_b = 1'b0;
-//				pc_sel = 1'b1;
-//				alu_sel = 1'b1;
-//				opcode = 16'bx;
-//				reg_en = 16'bx;
-//				instruction = mem_in;
 
 				if (instruction[15:12] != 4'b0100) 
 				begin
@@ -127,16 +110,11 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			// 3
 			R_TYPE:
 			begin
-				opcode = instruction;
-				mux_A_sel = instruction[11:8];	// Destination
-				mux_B_sel = instruction[3:0];  	// Source
-				reg_en = mux_out;
-				
-//				reg_en = mux_out;
-//				alu_sel = 1'b1;
-//				pc_en = 0;
-				
-				state = FETCH_1;
+				opcode 		= instruction;
+				mux_A_sel 	= instruction[11:8];	// Destination
+				mux_B_sel 	= instruction[3:0];  	// Source
+				reg_en 		= mux_out;				
+				state 		= FETCH_1;
 			end
 			
 			
@@ -146,17 +124,8 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				mux_A_sel 	= instruction[3:0]; //destination address
 				mux_B_sel 	= instruction[11:8]; //source register
 				pc_sel 		= 1'b0;
-				mem_w_en_a 	= 1'b1;
-			
-//				reg_en = 16'bx; // Don't write to a reg yet.
-//				opcode = 16'bx;
-//				pc_sel = 1'b0;
-//				pc_en = 1'b0;
-//				mem_w_en_a = 1'b1;
-//				mux_B_sel = instruction[11:8]; // source from which to store
-//				mux_A_sel = instruction[3:0];  // destination address
-				
-				state = STORE_2;
+				mem_w_en_a 	= 1'b1;				
+				state 		= STORE_2;
 			end
 			
 			// 5
@@ -164,13 +133,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			begin
 				pc_sel 		= 1'b1;
 				mem_w_en_a 	= 1'b0;
-			
-//				opcode = 16'bx;
-//				pc_en = 1'b0;
-//				pc_sel = 1'b1;
-//				mem_w_en_a = 1'b0;
-
-				state = FETCH_1;
+				state 		= FETCH_1;
 			end
 			
 			// 6
@@ -179,33 +142,15 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				mux_A_sel 	= instruction[3:0]; //address
 				pc_sel 		= 1'b0;
 				reg_en 		= mux_out;
-				
-			
-//				opcode = 16'bx;
-//				pc_en = 1'b0;
-//				pc_sel = 1'b0;
-//				mem_w_en_a = 1'b0;
-//				mem_w_en_b = 1'b0;
-//				// Destination register set by Mux4to16.
-//				mux_A_sel = instruction[3:0];  	// Address 
-//				reg_en = mux_out;
-
-				
-				state = LOAD_2;
+				state 		= LOAD_2;
 			end
 			
 			// 7
 			LOAD_2:
 			begin
-				alu_sel 	= 1'b0;
-				pc_sel 	= 1'b1;
-				
-			
-//				opcode = 16'bx;
-//				pc_en = 1'b0;
-//				pc_sel = 1'b1;
-//				alu_sel = 1'b0; // alu_sel = 0 means use output from memory (mem_in)
-				state = FETCH_1;
+				alu_sel 		= 1'b0;
+				pc_sel 		= 1'b1;
+				state 		= FETCH_1;
 			end
 			
 			// 8
@@ -217,19 +162,18 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			// 9
 			JUMP_2:
 			begin
-				reg_en = 16'bx;
-				opcode = 16'bx;
-			end			
+				reg_en 		= 16'bx;
+				opcode 		= 16'bx;
+			end	
+			
 		endcase
-	end
-	
-
-	
+	end	
 	
 	Mux4to16 regEnable(mem_in[11:8], mux_out);
-
-
+	
 endmodule
+
+
 
 module Mux4to16(s, decoder_out);
 
