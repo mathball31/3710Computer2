@@ -1,23 +1,23 @@
 
 
-module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
-	mem_w_en_a, mem_w_en_b, reg_en, flag_en, alu_sel, pc_en);
+module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
-	output reg [15:0] data_out, reg_en;
+	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
-	output reg pc_sel, imm_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en;
+	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en;
 	
 	wire [15:0] mux_out;
 	reg [3:0] state;
 	reg [15:0] instruction;
 	
 	parameter RESET		= 4'b0000;
-	parameter PRE_FETCH 	= 4'b0001;
-	parameter FETCH		= 4'b0010;
-	parameter R_TYPE_1	= 4'b0011;
+	parameter FETCH_1 	= 4'b0001;
+	parameter FETCH_2		= 4'b0010;
+	parameter R_TYPE		= 4'b0011;
 	parameter STORE_1		= 4'b0100;
 	parameter STORE_2		= 4'b0101;
 	parameter LOAD_1		= 4'b0110;
@@ -38,58 +38,71 @@ module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, im
 			// 0
 			RESET:
 			begin
-				//pc_en = 1'b0;
-				flag_en = 1'b0;
-				reg_en = 1'b0;
-				mem_w_en_a = 1'b0;
-				mem_w_en_b = 1'b0;
-				alu_sel = 1'b1; // alu_sel = 1 means use alu_bus.
-				pc_sel = 1'b1;
-				data_out = 16'bx;
-				reg_en = 16'bx;
-				
+				opcode 	= 16'bx;
+				mux_A_sel 	= 4'bx;
+				mux_B_sel 	= 4'bx;
+				alu_sel 		= 1'b1;
+				pc_sel 		= 1'b1;
+				mem_w_en_a 	= 1'b0;
+				mem_w_en_b 	= 1'b0;
+				reg_en 		= 16'bx;
+				flag_en		= 1'b0;
+				pc_en 		= 1'b0;
+
 				if (reset) 
 				begin
-					pc_en = 1'b0;
 					state = RESET;
 				end
 				
 				else 
 				begin
-					pc_en = 1'b0;  // TODO
-					state = PRE_FETCH;
+					state = FETCH_1;
 				end
 			end
 			
 			// 1
-			PRE_FETCH:
+			FETCH_1:
 			begin
-				reg_en = 16'bx;
-				data_out = 16'bx;
-				pc_en = 1'b1; // TODO
-				pc_sel = 1'b1;
-
-				mem_w_en_a = 1'b0;
-				state = FETCH;
+			
+				opcode 		= 16'bx;
+				mux_A_sel 	= 16'bx;
+				mux_B_sel	= 16'bx;
+				alu_sel 		= 1'b1;
+				pc_sel 		= 1'b1;
+				mem_w_en_a 	= 1'b0;
+				mem_w_en_b 	= 1'b0;
+				reg_en 		= 16'bx;
+				flag_en 		= 1'b0;
+				pc_en 		= 1'b1;
+				instruction = 16'bx;
+			
+				//reg_en = 16'bx;
+				//opcode = 16'bx
+				//mem_w_en_a = 1'b0;
+				state = FETCH_2;
 			end
 			
 			// 2
-			FETCH:
+			FETCH_2:
 			begin
 				pc_en = 1'b0;
-				flag_en = 1'b0;
-				reg_en = 1'b0;
-				mem_w_en_a = 1'b0;
-				mem_w_en_b = 1'b0;
-				pc_sel = 1'b1;
-				alu_sel = 1'b1;
-				data_out = 16'bx;
-				reg_en = 16'bx;
 				instruction = mem_in;
+			
+			
+//				pc_en = 1'b0;
+//				flag_en = 1'b0;
+//				reg_en = 1'b0;
+//				mem_w_en_a = 1'b0;
+//				mem_w_en_b = 1'b0;
+//				pc_sel = 1'b1;
+//				alu_sel = 1'b1;
+//				opcode = 16'bx;
+//				reg_en = 16'bx;
+//				instruction = mem_in;
 
 				if (instruction[15:12] != 4'b0100) 
 				begin
-					state = R_TYPE_1;
+					state = R_TYPE;
 				end
 				
 				else if (instruction[15:12] == 4'b0100)
@@ -112,30 +125,36 @@ module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, im
 			end
 			
 			// 3
-			R_TYPE_1:
+			R_TYPE:
 			begin
-				data_out = instruction;
+				opcode = instruction;
 				mux_A_sel = instruction[11:8];	// Destination
 				mux_B_sel = instruction[3:0];  	// Source
-				
 				reg_en = mux_out;
-				alu_sel = 1'b1;
-				pc_en = 0;
 				
-				state = PRE_FETCH;
+//				reg_en = mux_out;
+//				alu_sel = 1'b1;
+//				pc_en = 0;
+				
+				state = FETCH_1;
 			end
 			
 			
 			// 4
 			STORE_1:
 			begin
-				reg_en = 16'bx; // Don't write to a reg yet.
-				data_out = 16'bx;
-				pc_sel = 1'b0;
-				pc_en = 1'b0;
-				mem_w_en_a = 1'b1;
-				mux_B_sel = instruction[11:8]; // source from which to store
-				mux_A_sel = instruction[3:0];  // destination address
+				mux_A_sel 	= instruction[3:0]; //destination address
+				mux_B_sel 	= instruction[11:8]; //source register
+				pc_sel 		= 1'b0;
+				mem_w_en_a 	= 1'b1;
+			
+//				reg_en = 16'bx; // Don't write to a reg yet.
+//				opcode = 16'bx;
+//				pc_sel = 1'b0;
+//				pc_en = 1'b0;
+//				mem_w_en_a = 1'b1;
+//				mux_B_sel = instruction[11:8]; // source from which to store
+//				mux_A_sel = instruction[3:0];  // destination address
 				
 				state = STORE_2;
 			end
@@ -143,25 +162,33 @@ module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, im
 			// 5
 			STORE_2:
 			begin
-				data_out = 16'bx;
-				pc_en = 1'b0;
-				pc_sel = 1'b1;
-				mem_w_en_a = 1'b0;
+				pc_sel 		= 1'b1;
+				mem_w_en_a 	= 1'b0;
+			
+//				opcode = 16'bx;
+//				pc_en = 1'b0;
+//				pc_sel = 1'b1;
+//				mem_w_en_a = 1'b0;
 
-				state = PRE_FETCH;
+				state = FETCH_1;
 			end
 			
 			// 6
 			LOAD_1:
 			begin
-				data_out = 16'bx;
-				pc_en = 1'b0;
-				pc_sel = 1'b0;
-				mem_w_en_a = 1'b0;
-				mem_w_en_b = 1'b0;
-				// Destination register set by Mux4to16.
-				mux_A_sel = instruction[3:0];  	// Address 
-				reg_en = mux_out;
+				mux_A_sel 	= instruction[3:0]; //address
+				pc_sel 		= 1'b0;
+				reg_en 		= mux_out;
+				
+			
+//				opcode = 16'bx;
+//				pc_en = 1'b0;
+//				pc_sel = 1'b0;
+//				mem_w_en_a = 1'b0;
+//				mem_w_en_b = 1'b0;
+//				// Destination register set by Mux4to16.
+//				mux_A_sel = instruction[3:0];  	// Address 
+//				reg_en = mux_out;
 
 				
 				state = LOAD_2;
@@ -170,25 +197,28 @@ module FSM(clk, reset, mem_in, flags, data_out, mux_A_sel, mux_B_sel, pc_sel, im
 			// 7
 			LOAD_2:
 			begin
-				data_out = 16'bx;
-				pc_en = 1'b0;
-				pc_sel = 1'b1;
-				alu_sel = 1'b0; // alu_sel = 0 means use output from memory (mem_in)
-				state = PRE_FETCH;
+				alu_sel 	= 1'b0;
+				pc_sel 	= 1'b1;
+				
+			
+//				opcode = 16'bx;
+//				pc_en = 1'b0;
+//				pc_sel = 1'b1;
+//				alu_sel = 1'b0; // alu_sel = 0 means use output from memory (mem_in)
+				state = FETCH_1;
 			end
 			
 			// 8
 			JUMP_1:
 			begin
-				reg_en = 16'bx;
-				data_out = 16'bx;
+				
 			end
 			 
 			// 9
 			JUMP_2:
 			begin
 				reg_en = 16'bx;
-				data_out = 16'bx;
+				opcode = 16'bx;
 			end			
 		endcase
 	end

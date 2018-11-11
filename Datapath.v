@@ -50,7 +50,7 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
 	
-	RegBank regFile(reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, reg_en, clk, reset);
+	RegBank regFile(clk, reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
 
 	RegMux muxA(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_A_sel, mux_A_out);
 
@@ -65,8 +65,8 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	// care of immediate instructions)
 	Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, pc_sel, imm_sel, 
-		w_en_a, w_en_b, reg_en, flag_en, alu_sel, pc_en);
+	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+		w_en_a, w_en_b, reg_en, flag_en, pc_en);
 	
 
 endmodule
