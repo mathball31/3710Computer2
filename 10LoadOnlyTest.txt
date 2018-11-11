@@ -1,28 +1,30 @@
 // FSM/Datapath Test Program 10:  Loads with no stores
 
-// 1: store 200 into memory address 1000  
-@00C8 0190
-
-// 2: store 150 into memory address 500
-@0096 012C
-
-// 3: Add immediate 200 into r0
+// 0: Add immediate 200 into r0
 // 16'b0101_0000_1100_1000
 50C8
 
-// 4: Add immediate 150 into r1
+// 1: Add immediate 150 into r1
 // 16'b0101_0001_1001_0110
 5196
 
-// 5: load into r2 the value from memory address r0
+// 2: load into r2 the value from memory address r0
 // 16'b0100_0010_0000_0000
 4200
 
-// 6: load into r3 the value from memory address r1
+// 3: load into r3 the value from memory address r1
 // 16'b0100_0011_0000_0001
 4301
 
-// 7: add r3 to r2 and store it in r3
-0000_0011_0101_0010
+// 4: add r3 to r2 and store it in r3
+// 16'b0000_0011_0101_0010
+0352
 
-// result:  r3 should be 1500 or 0x5DC
+// result:  r3 should be 700 or 0x2bc
+
+// 6: store 200 into memory address 1000  
+@00C8 0190
+
+// 7: store 150 into memory address 500
+@0096 012C
+
