@@ -1,14 +1,14 @@
 
 
 module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
-	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en);
+	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en, pc_ld);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
-	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en;
+	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en, pc_ld;
 	
 	wire [15:0] mux_out;
 	reg [3:0] state;
@@ -24,6 +24,29 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 	parameter LOAD_2		= 4'b0111;
 	parameter JUMP_1		= 4'b1000;
 	parameter JUMP_2		= 4'b1001;
+	
+	parameter EQUAL 		= 4'b0000; 	// Equal 						Z=1
+	parameter NOT_EQ 		= 4'b0001; 	// Not Equal 					Z=0
+	parameter GREAT_EQ	= 4'b1101; 	// Greater than or Equal 	N=1 or Z=1
+	parameter CARRY_SET	= 4'b0010; 	// Carry Set 					C=1
+	parameter CARRY_CL	= 4'b0011; 	// Carry Clear 				C=0
+	parameter HIGHER		= 4'b0100; 	// Higher than 				L=1
+	parameter LOW_SAME	= 4'b0101; 	// Lower than or Same as 	L=0
+	parameter LOWER 		= 4'b1010; 	// Lower than 					L=0 and Z=0
+	parameter HIGH_SAME	= 4'b1011; 	// Higher than or Same as 	L=1 or Z=1
+	parameter GREATER		= 4'b0110; 	// Greater Than 				N=1
+	parameter LESS_EQ		= 4'b0111; 	// Less than or Equal 		N=0
+	parameter FLAG_SET	= 4'b1000; 	// Flag Set 					F=1
+	parameter FLAG_CL		= 4'b1001; 	// Flag Clear 					F=0
+	parameter LESS 		= 4'b1100; 	// Less Than 					N=0 and Z=0
+	parameter UNCOND		= 4'b1110; 	// Unconditional 				N/A
+	parameter NO_JUMP		= 4'b1111; 	// Never jump					N/A
+	
+	parameter ZERO 	= 4;
+	parameter CARRY 	= 3;
+	parameter FLOW 	= 2;
+	parameter NEG 		= 1;
+	parameter LOW 		= 0;
 	
 	
 	always @(posedge clk)
@@ -48,6 +71,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				reg_en 		= 16'bx;
 				flag_en		= 1'b0;
 				pc_en 		= 1'b0;
+				pc_ld			= 1'b0;
 
 				if (reset) 
 				begin
@@ -73,6 +97,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				reg_en 		= 16'bx;
 				flag_en 		= 1'b0;
 				pc_en 		= 1'b1;
+				pc_ld			= 1'b0;
 				instruction = 16'bx;
 				state 		= FETCH_2;
 			end
@@ -155,15 +180,68 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			
 			// 8
 			JUMP_1:
-			begin
+			begin		  
+				case (instruction[11:8]) // condition = instruction[11:8]
+					EQUAL:
+						pc_ld = flags[ZERO];
+						
+					NOT_EQ:
+						pc_ld = !flags[ZERO];
+						
+					GREAT_EQ:
+						pc_ld = (flags[NEG] || flags[ZERO]);
+						
+					CARRY_SET:
+						pc_ld = flags[CARRY];
+						
+					CARRY_CL:
+						pc_ld = !flags[CARRY];
+						
+					HIGHER:
+						pc_ld = flags[LOW];
+						
+					LOW_SAME:
+						pc_ld = !flags[LOW];
+						
+					LOWER:
+						pc_ld = (!flags[LOW] && !flags[ZERO]);
+						
+					HIGH_SAME:
+						pc_ld = (flags[LOW] && flags[ZERO]);
+						
+					GREATER:
+						pc_ld = flags[NEG];
+						
+					LESS_EQ:
+						pc_ld = !flags[NEG];
+						
+					FLAG_SET:
+						pc_ld = flags[FLOW];
+						
+					FLAG_CL:
+						pc_ld = !flags[FLOW];
+						
+					LESS:
+						pc_ld = (!flags[NEG] && !flags[ZERO]);
+						
+					UNCOND:
+						pc_ld = 1'b1;
+						
+					NO_JUMP:
+						pc_ld = 1'b0;
+				endcase
 				
+				pc_en = pc_ld;
+				mux_A_sel = instruction[3:0];
+				state = JUMP_2;
 			end
 			 
 			// 9
 			JUMP_2:
 			begin
-				reg_en 		= 16'bx;
-				opcode 		= 16'bx;
+				pc_ld = 1'b0;
+				pc_en = 1'b0;
+				state = FETCH_1;
 			end	
 			
 		endcase

@@ -45,7 +45,7 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	wire [15:0] data_b; // TODO these don't do anything; refer to mem declaration comments
 	wire [9:0] addr_b; // TODO these don't do anything; refer to mem declaration comments
 	wire [9:0] pc_out;
-	wire pc_ld = 0; // TODO Depends on load instruction. Will come from FSM later
+	wire pc_ld; // TODO Depends on load instruction. Will come from FSM later
 	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0];	
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
@@ -66,7 +66,7 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	
 	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
-		w_en_a, w_en_b, reg_en, flag_en, pc_en);
+		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 	
 
 endmodule
@@ -102,7 +102,7 @@ module RegMux(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r
 			12: out = r12;
 			13: out = r13;
 			14: out = r14;
-			15: out = r15;			
+			15: out = r15;	
 		
 		endcase
 	end

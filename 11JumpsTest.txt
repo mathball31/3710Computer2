@@ -1,1 +1,30 @@
 // FSM/Datapath Test Program 11:  Jumps
+// Hi, Sam! We're doing a real simple test right now... feel free to change 
+// this file to whatever test you had in mind.
+
+// 0:  0101 - add immediate 0000 - register 0 - value 5
+// 16'b0101_0000_0000_0101;
+5005
+
+// 1: jump to instruction in r0 (5)
+// 16'b0100_1110_1100_0000
+4ec0
+
+// 2: filler
+2222
+
+// 3: filler
+3333
+
+// 4: filler
+4444
+
+// 5: add immediate into r0
+// 16'b0101_0000_0000_1010
+500a
+
+
+// Result: r0 == 0xf
+
+
+
