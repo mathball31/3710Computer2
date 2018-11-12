@@ -1,1 +1,117 @@
-// FSM/Datapath Test Program 12:  Jumps, loads, and stores put together
+// FSM/Datapath Test Program 12:  Loads with Stores and Jumps
+
+// 0:  Add immediate 1 into r0
+// 16'b0101_0000_0000_0001
+5001
+
+// 1:  Add immediate 2 into r1
+// 16'b0101_0001_0000_0010
+5102
+
+// 2:  Add immediate 0xA into r2
+// 16'b0101_0010_0000_1010
+520A
+
+// 3:  Compare r1 to r0
+// 16'b0000_0001_1011_0000
+01B0
+
+// 4:  Jump if less than to r2 (should not jump)
+// 16'b0100_1100_1100_0010
+4CC2
+
+// 5:  Add immediate 200 into r3
+// 16'b0101_0011_1100_1000
+53C8
+
+// 6:  Add immediate 201 into r4
+// 16'b0101_0100_1100_1001
+54C9
+
+// 7:  Store r0 into memory address r3
+// 16'b0100_0000_0100_0011
+4043
+
+// 8:  Store r1 into memory address r4
+// 16'b0100_0001_0100_0100
+4144
+
+// 9:  Xor r0 with itself
+// 16'b0000_0000_0011_0000
+0030
+
+// A:  Add immediate 3 into r0
+// 16'b0101_0000_0000_0011
+5003
+
+// B:  Add immediate 1 into r1
+// 16'b0101_0001_0000_0001
+5101
+
+// C:  Add immediate 7 into r5
+// 16'b0101_0101_0000_0111
+5507
+
+// D:  Compare r0 to r1
+// 16'b0000_0000_1011_0001
+00B1
+
+// E:  Jump if less than to r5
+// 16'b0100_1100_1100_0101
+4CC5
+
+// Results up to this point should be:  r0 = 3, r1 = 4, r2 = A, r3 = 200, r4 = 201, r5 = 7;  0xC8 = 3, 0xC9 = 3
+
+// F:  r1 = r0 + r1 (r1 = 7), (2nd pass r1 = 10)
+//16'b0000_0001_0101_0000
+0150
+
+// 10:  Load into r6 the value from memory address r4 (3, 10)
+// 16'b0100_0110_0000_0100
+4604
+
+// 11:  r6 = r6 + r1 (r6 = 10), (r6 = 20)
+// 16'b0000_0110_0101_0001
+0651
+
+// 12:  Store r6 into memory address r4 (10, 20)
+// 16'b0100_0110_0100_0100
+4644
+
+// 13:  Xor r2 to itself
+// 16'b0000_0010_0011_0010
+0232
+
+// 14:  add immediate 0x17 to r2
+// 16'b0101_0010_0001_0111
+5217
+
+// 15:  jump to r2
+// 16'b0100_1110_1100_0010
+4EC2
+
+// 16:  add immediate 1 to r1 (should not be executed)
+// 16'b0101_0001_0000_0001
+5101
+
+// 17:  Xor r5 to itself
+// 16'b0000_0101_0011_0101
+0535
+
+// 18:  Add immediate 0xF to r5
+// 16'b0101_0101_0000_1111
+550F
+
+// 19:  compare r6 to r1
+// 16'b0000_0110_1011_0001
+06B1
+
+// 1A:  jump on less than to r5
+// 16'b0100_1100_1100_0101
+4665
+
+// 1B:  Add immediate 1 to r6
+// 16'b0101_0110_0000_0001
+5601
+
+// Result:  r6 should contain 0x15
