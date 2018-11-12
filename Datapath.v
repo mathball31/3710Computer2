@@ -21,13 +21,12 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(Cin, clk, reset, flags, alu_bus);
+module Datapath(clk, reset, alu_bus);
 	
-	input clk, Cin, reset;
-	// add output
-	
-	output [4:0] flags;
+	input clk, reset;
 	output [15:0] alu_bus;
+	
+	wire [4:0] flags_in, flags_out;
 	
 	wire [15:0] r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15;
 	wire [15:0] mux_A_out, mux_B_out;
@@ -37,15 +36,11 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 	//				[11:8] = number for input A (dest)
 	//				[3:0] = number for input B
 	
-	// Mux4to16 regEnable(opcode[11:8], reg_en);
-	// new stuuuff
-	
-	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel, flag_en, alu_sel;  // Output from FSM
+	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel, flag_en, alu_sel, pc_ld;  // Output from FSM
 	wire [3:0] mux_A_sel, mux_B_sel;
-	wire [15:0] data_b; // TODO these don't do anything; refer to mem declaration comments
-	wire [9:0] addr_b; // TODO these don't do anything; refer to mem declaration comments
+	wire [15:0] data_b; 
+	wire [9:0] addr_b; 
 	wire [9:0] pc_out;
-	wire pc_ld; // TODO Depends on load instruction. Will come from FSM later
 	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0];	
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
@@ -56,16 +51,17 @@ module Datapath(Cin, clk, reset, flags, alu_bus);
 
 	RegMux muxB(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_B_sel, mux_B_out);
 	
-	ALU alu(mux_A_out, mux_B_out, opcode, flags, Cin, alu_bus);
+	ALU alu(mux_A_out, mux_B_out, opcode, flags_in, flags_out[3], alu_bus);
 	
 	ProgramCounter pc(clk, reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
 	
-	// Will fill in data_b and addr_b later for VGA (maybe?)
-	// TODO mux_B_out may need to change to account for immediate instructions (refer to how ALU takes 
-	// care of immediate instructions)
-	Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
+	Flags flags(clk, reset, flag_en, flags_in, flags_out);
 	
-	FSM fsm(clk, reset, mem_out_a, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
+	//Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
+	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
+	
+	FSM fsm(clk, reset, mem_out_a, flags_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 	
 
@@ -136,5 +132,18 @@ module ProgramCounter(clk, reset, pc_en, pc_ld, pc_in, pc_out);
 		begin
 			pc_out = pc_out;
 		end
+	end
+endmodule
+
+
+module Flags(clk, reset, flag_en, flags_in, flags_out);
+	input clk, reset, flag_en;
+	input [4:0] flags_in;
+	output reg [4:0] flags_out;
+	
+	always @(posedge clk) 
+	begin
+		if (reset) flags_out = 5'bxxxx;
+		else if (flag_en) flags_out = flags_in;
 	end
 endmodule

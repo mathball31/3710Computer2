@@ -39,8 +39,12 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 	parameter FLAG_SET	= 4'b1000; 	// Flag Set 					F=1
 	parameter FLAG_CL		= 4'b1001; 	// Flag Clear 					F=0
 	parameter LESS 		= 4'b1100; 	// Less Than 					N=0 and Z=0
-	parameter UNCOND		= 4'b1110; 	// Unconditional 				N/A
-	parameter NO_JUMP		= 4'b1111; 	// Never jump					N/A
+	parameter UNCOND		= 4'b1110; 	// Unconditional 				1
+	parameter NO_JUMP		= 4'b1111; 	// Never jump					0
+	
+	// Need these so they don't overwrite register
+	parameter CMP 		= 4'b1011; 
+	parameter CMPU		= 4'b1111;
 	
 	parameter ZERO 	= 4;
 	parameter CARRY 	= 3;
@@ -88,8 +92,8 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 			FETCH_1:
 			begin			
 				opcode 		= 16'bx;
-				mux_A_sel 	= 16'bx;
-				mux_B_sel	= 16'bx;
+				mux_A_sel 	= 4'bx;
+				mux_B_sel	= 4'bx;
 				alu_sel 		= 1'b1;
 				pc_sel 		= 1'b1;
 				mem_w_en_a 	= 1'b0;
@@ -138,7 +142,16 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				opcode 		= instruction;
 				mux_A_sel 	= instruction[11:8];	// Destination
 				mux_B_sel 	= instruction[3:0];  	// Source
-				reg_en 		= mux_out;				
+				
+				if (instruction[7:4] == CMP || instruction[7:4] == CMPU)
+				begin
+					reg_en 	= 16'bx;		
+				end
+				else
+				begin
+					reg_en 	= mux_out;
+				end
+				
 				state 		= FETCH_1;
 			end
 			
@@ -207,7 +220,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 						pc_ld = (!flags[LOW] && !flags[ZERO]);
 						
 					HIGH_SAME:
-						pc_ld = (flags[LOW] && flags[ZERO]);
+						pc_ld = (flags[LOW] || flags[ZERO]);
 						
 					GREATER:
 						pc_ld = flags[NEG];
