@@ -21,10 +21,11 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, alu_bus);
+module Datapath(clk, reset, alu_bus, out);
 	
 	input clk, reset;
 	output [15:0] alu_bus;
+	output [27:0] out;
 	
 	wire [4:0] flags_in, flags_out;
 	
@@ -63,6 +64,8 @@ module Datapath(clk, reset, alu_bus);
 	
 	FSM fsm(clk, reset, mem_out_a, flags_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
+		
+	CPUDisplay disp(r0, out);
 	
 
 endmodule
@@ -146,4 +149,15 @@ module Flags(clk, reset, flag_en, flags_in, flags_out);
 		if (reset) flags_out = 5'bxxxx;
 		else if (flag_en) flags_out = flags_in;
 	end
+endmodule
+
+
+module CPUDisplay(r0, Display);
+	input[15:0] r0;
+	output [27:0] Display;
+
+	hexTo7Seg seg0(r0[15:12], Display[27:21]);
+	hexTo7Seg seg1(r0[11:8], Display[20:14]);
+	hexTo7Seg seg2(r0[7:4], Display[13:7]);
+	hexTo7Seg seg3(r0[3:0], Display[6:0]);
 endmodule
