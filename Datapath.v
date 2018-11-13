@@ -152,12 +152,12 @@ module Flags(clk, reset, flag_en, flags_in, flags_out);
 endmodule
 
 
-module CPUDisplay(r0, Display);
-	input[15:0] r0;
+module CPUDisplay(r_in, Display);
+	input[15:0] r_in;
 	output [27:0] Display;
 
-	hexTo7Seg seg0(r0[15:12], Display[27:21]);
-	hexTo7Seg seg1(r0[11:8], Display[20:14]);
-	hexTo7Seg seg2(r0[7:4], Display[13:7]);
-	hexTo7Seg seg3(r0[3:0], Display[6:0]);
+	hexTo7Seg seg0(r_in[15:12], Display[27:21]);
+	hexTo7Seg seg1(r_in[11:8], Display[20:14]);
+	hexTo7Seg seg2(r_in[7:4], Display[13:7]);
+	hexTo7Seg seg3(r_in[3:0], Display[6:0]);
 endmodule
