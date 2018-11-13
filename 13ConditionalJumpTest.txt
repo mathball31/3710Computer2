@@ -10,12 +10,11 @@
 // 16'b0000_0000_1011_0001
 00b1
 
-// 2: jump if less than to instruction in r0 (6)
-// 16'b0100_1100_1100_0000
-4cc0
-// 3: jump to instruction in r0 (6)
-// 16'b0100_1110_1100_0000
-4ec0
+// 2: jump if >= than to instruction in r0 (6)
+// 16'b0100_1101_1100_0000
+4dc0
+// 3: filler
+3333
 
 
 // 4: filler

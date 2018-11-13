@@ -142,6 +142,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				opcode 		= instruction;
 				mux_A_sel 	= instruction[11:8];	// Destination
 				mux_B_sel 	= instruction[3:0];  	// Source
+				flag_en		= 1'b1;
 				
 				if (instruction[7:4] == CMP || instruction[7:4] == CMPU)
 				begin
