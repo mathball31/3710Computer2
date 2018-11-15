@@ -1,7 +1,7 @@
 
 /*	FPGA has a 50MHz clock and a 25MHz clock - recommended to us 25MHz clock
 
-	VGA 640x480 @ 60Hz refresh and 40MHz pixel clock
+	VGA 640x480 @ 60Hz refresh and 25MHz pixel clock
 	
 	HSync
 			Timing		Clocks
@@ -30,39 +30,12 @@ module VGAcontrol (
 	output reg hSync, vSync, bright,
 	output reg [9:0] hCount, vCount);
 	
-	reg [7:0] h_sbpCount;			// sync and backporch pulse count for horizontal timing
-	reg [7:0] v_sbpCount;			// sync and backporch pulse count for vertical timing
+
 	
 	// hsync, vsync are asserted low - high rest of the time
 	always@(posedge clock)
 	begin
-		// when hCount = 640, hSync = 1
-		//	when hSync = 1, hCount = 0, v_en = 1, count sync and back porch pulses
-		 
-		// count sync and backporch pulses first
-		h_sbpCount <= h_sbpCount + 1;
 		
-		// when they hit 135 clock cycles, turn on hSync
-		if(h_sbpCount >= 135)
-		begin
-			hSync <= 1;
-		end
-		else
-		begin
-			hSync <= 0;
-		end
-
-		// if hSync is on, then start counting hCount
-		if(hSync)
-		begin
-			hCount <= hCount + 1;
-		end
-		else
-		begin
-			// if it's off, clear hCount, turn on v_en
-			hCount <= 0;
-			v_en <= 1;
-		end		
 	end
 	
 	
