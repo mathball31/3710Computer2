@@ -6,16 +6,17 @@ module DatapathTest;
 	reg clk = 0;
 	reg reset = 1;
 	//wire [4:0] flags;
-	wire [15:0] alu_bus;	
+	//wire [15:0] alu_bus;
+	wire [27:0] Display;
 	
-	Datapath dp(clk, reset, alu_bus);
+	Datapath dp(clk, reset, Display);
 	
 	initial
 	begin
 		#5;
-		reset = 1;
-		#10
 		reset = 0;
+		#10
+		reset = 1;
 	end
 	
 	always

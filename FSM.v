@@ -24,6 +24,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 	parameter LOAD_2		= 4'b0111;
 	parameter JUMP_1		= 4'b1000;
 	parameter JUMP_2		= 4'b1001;
+	parameter STOP			= 4'b1010;
 	
 	parameter EQUAL 		= 4'b0000; 	// Equal 						Z=1
 	parameter NOT_EQ 		= 4'b0001; 	// Not Equal 					Z=0
@@ -112,7 +113,11 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				pc_en 		= 1'b0;
 				instruction = mem_in;
 
-				if (instruction[15:12] != 4'b0100) 
+				if (instruction == 16'b0)
+				begin
+					state = STOP;
+				end
+				else if (instruction[15:12] != 4'b0100) 
 				begin
 					state = R_TYPE;
 				end
@@ -142,6 +147,7 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				opcode 		= instruction;
 				mux_A_sel 	= instruction[11:8];	// Destination
 				mux_B_sel 	= instruction[3:0];  	// Source
+				flag_en		= 1'b1;
 				
 				if (instruction[7:4] == CMP || instruction[7:4] == CMPU)
 				begin
@@ -256,6 +262,24 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				pc_en = 1'b0;
 				state = FETCH_1;
 			end	
+			
+			//10
+			STOP:
+			begin
+				opcode 		= 16'bx;
+				mux_A_sel 	= 4'bx;
+				mux_B_sel	= 4'bx;
+				alu_sel 		= 1'b1;
+				pc_sel 		= 1'b1;
+				mem_w_en_a 	= 1'b0;
+				mem_w_en_b 	= 1'b0;
+				reg_en 		= 16'bx;
+				flag_en 		= 1'b0;
+				pc_en 		= 1'b1;
+				pc_ld			= 1'b0;
+				instruction = 16'bx;
+				state = STOP;
+			end
 			
 		endcase
 	end	
