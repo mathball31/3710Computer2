@@ -45,8 +45,8 @@ module VGAControl (
 	parameter VFRONT = 314;			// front porch
 	parameter VMAX = 16485;			// max length for vertical pulse
 	
-	wire hreset, hsyncon, hsyncoff;
-	wire vreset, vsyncon, vsyncoff;
+	wire hreset, hsyncon, hsyncoff, hoff;
+	wire vreset, vsyncon, vsyncoff, voff;
 	
 	// hsync, vsync are asserted low - high rest of the time <- active low
 	// use nested if loops or separate always blocks
@@ -74,15 +74,56 @@ module VGAControl (
 			// make sure vCount stays constant until horizontal reset has been fired
 			vCount <= vCount;
 		end
+		
+		
+		// if statment to check for how hsync should behave
+		if (hsyncon)
+		begin
+			hSync <= 0;
+		end
+		else
+		begin
+			if(hsyncoff)
+			begin
+				hSync <= 1;
+			end
+			else
+			begin
+				hSync <= hSync;
+			end
+		end
+		
+		
+		// if statement to check for how vsync should behave - almost exactly the same as hsync
+		if (vsyncon)
+		begin
+			vsync <= 0;
+		end
+		else
+		begin
+			if (vsyncoff)
+			begin
+				vsync <= 1;
+			end
+			else
+			begin
+				vsync <= vsync;
+			end
+		end
 	end
+	
 	
 	assign hreset = (hCount == (HMAX - 1));		// MAX - 1 because we start counting from 0
 	
-	// tells hsync when to fires, happens after the display has been shown, and front porch happens
+	// tells hsync when to fire, happens after the display has been shown, and front porch happens
 	assign hsyncon = (hCount == ((HVID + HFRONT) - 1));
 	
 	// turn off hsync
 	assign hsyncoff = (hCount == (HPULSE - 1));
+	
+	// when the beam shouldn't be on for the horizontal sync, which is during pulse, back porch, and front porch
+	assign hoff = (hCount == (((HPULSE + HBACK) - 1)) || (hCount == ((HVID + HFRONT) - 1)));
+	
 	
 	assign vreset = (vCount == (VMAX - 1));
 	
