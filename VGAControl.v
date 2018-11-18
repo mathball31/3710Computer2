@@ -45,71 +45,32 @@ module VGAControl (
 	parameter VFRONT = 314;			// front porch
 	parameter VMAX = 16485;			// max length for vertical pulse
 	
-	wire hreset, hsyncon, hsyncoff, hoff;
-	wire vreset, vsyncon, vsyncoff, voff;
+	wire hReset, hSyncOn, hSyncOff, hOff;
+	wire vReset, vSyncOn, vSyncOff, vOff;
 	
 	// hsync, vsync are asserted low - high rest of the time <- active low
 	// use nested if loops or separate always blocks
 	always@ (posedge clock)
 	begin
-		if (hreset)
-		begin
-			// reset has been fired for horizontal sync
-			hCount <= 0;
-			
-			if (vreset)
-			begin
-				vCount <= 0;
-			end
-			else 
-			begin
-				vCount <= vCount + 1;
-			end
-		end
-		else
-		begin
-			// herest == 0
-			hCount <= hCount + 1;
-			
-			// make sure vCount stays constant until horizontal reset has been fired
-			vCount <= vCount;
-		end
+		// a different way of using conditionals with a conditional operator!
+		// syntax -> conditional ? true : false
+		
+		// if hReset == 0, hCount = 0; else hCount <= hCount + 1;
+		hCount <= hReset ? 0 : hCount + 1;
+		
+		// statement of how hSync should behave
+		// if hSyncOn == 1, hSync <= (fires). Else, if hSyncOff == 1, don't fire (hSync <= 1)
+		// otherwise, retain it's previous state
+		hSync <= hSyncOn ? 0 : hSyncOff ? 1 : hSync;
 		
 		
-		// if statment to check for how hsync should behave
-		if (hsyncon)
-		begin
-			hSync <= 0;
-		end
-		else
-		begin
-			if(hsyncoff)
-			begin
-				hSync <= 1;
-			end
-			else
-			begin
-				hSync <= hSync;
-			end
-		end
+		// if hReset == 0, if vReset == 0, vCount <= 0, else increment
+		// else just keep vCount as it is -> horizontal beam hasn't reached the end
+		vCount <= hReset ? (vReset ? 0 : vCount + 1) : vCount;
 		
+		// statement of how vSync should behave - almost exactly the same as hSync
+		vSync <= vSyncOn ? 0 : vSyncOff ? 1 : vSync;
 		
-		// if statement to check for how vsync should behave - almost exactly the same as hsync
-		if (vsyncon)
-		begin
-			vsync <= 0;
-		end
-		else
-		begin
-			if (vsyncoff)
-			begin
-				vsync <= 1;
-			end
-			else
-			begin
-				vsync <= vsync;
-			end
-		end
 	end
 	
 	
