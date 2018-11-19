@@ -40,11 +40,12 @@ module VGAControl (
 	parameter HMAX = 785;			// max length of horizontal pulse
 	
 	parameter VVID = 480;			// pixel height
-	parameter VPUSLE = 63;			// sync pulse
+	parameter VPULSE = 63;			// sync pulse
 	parameter VBACK = 1036;			// back porch
 	parameter VFRONT = 314;			// front porch
 	parameter VMAX = 16485;			// max length for vertical pulse
 	
+	reg vBlank, hBlank;
 	wire hReset, hSyncOn, hSyncOff, hOff;
 	wire vReset, vSyncOn, vSyncOff, vOff;
 	
@@ -57,39 +58,44 @@ module VGAControl (
 		
 		// if hReset == 0, hCount = 0; else hCount <= hCount + 1;
 		hCount <= hReset ? 0 : hCount + 1;
-		
 		// statement of how hSync should behave
 		// if hSyncOn == 1, hSync <= (fires). Else, if hSyncOff == 1, don't fire (hSync <= 1)
 		// otherwise, retain it's previous state
 		hSync <= hSyncOn ? 0 : hSyncOff ? 1 : hSync;
+		// if hReset == 1, hBlank == 0. Else if hReset == 0, check if hOff == 1, hBlank == 1
+		// which menas that the beam shouldn't be in use
+		// otherwise retain previous state.
+		hBlank <= hReset ? 0 : hOff ? 1 : hBlank;
 		
 		
 		// if hReset == 0, if vReset == 0, vCount <= 0, else increment
 		// else just keep vCount as it is -> horizontal beam hasn't reached the end
 		vCount <= hReset ? (vReset ? 0 : vCount + 1) : vCount;
-		
 		// statement of how vSync should behave - almost exactly the same as hSync
 		vSync <= vSyncOn ? 0 : vSyncOff ? 1 : vSync;
+		vBlank <= vReset ? 0 : vOff ? 1 : vBlank;
 		
+		// bright can be asserted high or low - used by BitGen to say whether or not to draw a pixel
+		// this is enabled when the position is in the active area of the screen
+		// bright == 1 when vBlank == hBlank == 0 <- "blanking" is not on (the beam is on)
+		bright <= !(vBlank && hBlank);
 	end
 	
 	
-	assign hreset = (hCount == (HMAX - 1));		// MAX - 1 because we start counting from 0
-	
+	assign hReset = (hCount == (HMAX - 1));		// MAX - 1 because we start counting from 0
 	// tells hsync when to fire, happens after the display has been shown, and front porch happens
-	assign hsyncon = (hCount == ((HVID + HFRONT) - 1));
-	
+	assign hSyncOn = (hCount == ((HVID + HFRONT) - 1));
 	// turn off hsync
-	assign hsyncoff = (hCount == (HPULSE - 1));
-	
+	assign hSyncOff = (hCount == (HPULSE - 1));
 	// when the beam shouldn't be on for the horizontal sync, which is during pulse, back porch, and front porch
-	assign hoff = (hCount == (((HPULSE + HBACK) - 1)) || (hCount == ((HVID + HFRONT) - 1)));
+	assign hOff = (hCount == ((HPULSE + HBACK) - 1) || (hCount == ((HVID + HFRONT) - 1)));
 	
 	
-	assign vreset = (vCount == (VMAX - 1));
+	assign vReset = (vCount == (VMAX - 1));
 	
-	// bright can be asserted high or low - used by BitGen to say whether or not to draw a pixel
-	// this is enabled when the position is in the active area of the screen
-//	assign bright = (
+	// telss vSync when to fire, happens after display has been shown and front porch happens
+	assign vSyncOn = hReset & (vCount == ((VVID + VFRONT) - 1));
+	assign vSyncOff = hReset & (vCount == (HPULSE - 1));
+	assign vOff = hReset & (vCount == ((VPULSE + VBACK) - 1) || (vCount == ((VVID + VFRONT) - 1)));
 	
 endmodule
