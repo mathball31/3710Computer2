@@ -1,4 +1,10 @@
 
+/* Overall module of the VGA */
+module VGA ();
+
+endmodule
+
+
 /*	FPGA has a 50MHz clock and a 25MHz clock - recommended to us 25MHz clock
 	VGA 640x480 @ 60Hz refresh and 25MHz pixel clock
 	
@@ -25,7 +31,7 @@
 	To find the clock cycles, multiply the lines with the total scanline time of the HSync
 */
 module VGAControl (
-	input clock, clear,
+	input clock,
 	output reg hSync, vSync, bright,
 	output reg [9:0] hCount, vCount);
 	
@@ -98,4 +104,19 @@ module VGAControl (
 	assign vSyncOff = hReset & (vCount == (HPULSE - 1));
 	assign vOff = hReset & (vCount == ((VPULSE + VBACK) - 1) || (vCount == ((VVID + VFRONT) - 1)));
 	
+endmodule
+
+/*
+	Is a combinational circuit
+	Decides for each pixel what color should be on the screen
+	
+	Glyph graphics - break the screen into chunks
+*/
+module BitGen (
+	input bright,
+	input [7:0] pixelData,
+	input [9:0] hCount, vCount,
+	output reg [7:0] rgb);
+
+
 endmodule
