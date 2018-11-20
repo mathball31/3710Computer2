@@ -117,6 +117,30 @@ module BitGen (
 	input [7:0] pixelData,
 	input [9:0] hCount, vCount,
 	output reg [7:0] rgb);
-
+	
+	// First just dipslay vertical bars of each color:
+	
+	
+	/** glyph number is hCount and vCount minus the low three bits
+	 * glyph bits are the low-order 4 bits in each of hCount and vCount
+	 * Figure out which screen chunk you’re in, then reference the bits from the glyph memory 
+	 *
+	 * Use 16 pixels square for each block.  This results in a grid of 40 x 30.
+	 * the glyphs will be stored somewhere in memory:  They should be:
+	 *		* The letters A - Z plus a few special characters (dash)
+	 *    * Green glyphs for green snake
+	 *    * Blue glyphs for blue snake
+	 *    * Red glyphs for food
+	 *    * Black (default background color)
+	 *
+	 * A grid of 40 x 30 would require a memory block of 1200 bytes
+	 * and a separate storage for 32 glyphs
+	 *
+	 * Check which block we are in (refer to the block of memory)
+	 *
+	 * Check where in the block (glyph) we are in (now refer to the glyph memory)
+	 *
+	 * Display the correct pixel of the glyph
+	 **/
 
 endmodule
