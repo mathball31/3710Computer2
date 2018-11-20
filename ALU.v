@@ -193,7 +193,8 @@ begin
 				
 				CMP:
 				begin
-					if( $signed(A) < $signed(B) ) 
+					// 11.12 D&M changed from "<"
+					if( $signed(A) >= $signed(B) ) 
 						Flags[1:0] = 2'b11;
 					else 
 						Flags[1:0] = 2'b00;
@@ -206,7 +207,8 @@ begin
 				
 				CMPU:
 				begin
-					Flags[0] = (A < B);  // negative flag not set for unsigned operations
+					// 11.12 D&M changed from "<"
+					Flags[0] = (A >= B);  // negative flag not set for unsigned operations
 					
 					Flags[3:1] = 3'b000;
 					

@@ -21,10 +21,11 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, alu_bus);
+module Datapath(clk, reset, Display);
 	
 	input clk, reset;
-	output [15:0] alu_bus;
+	wire [15:0] alu_bus;
+	output [27:0] Display;
 	
 	wire [4:0] flags_in, flags_out;
 	
@@ -45,7 +46,7 @@ module Datapath(clk, reset, alu_bus);
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
 	
-	RegBank regFile(clk, reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
+	RegBank regFile(clk, !reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
 
 	RegMux muxA(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_A_sel, mux_A_out);
 
@@ -53,18 +54,21 @@ module Datapath(clk, reset, alu_bus);
 	
 	ALU alu(mux_A_out, mux_B_out, opcode, flags_in, flags_out[3], alu_bus);
 	
-	ProgramCounter pc(clk, reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
+	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
 	
-	Flags flags(clk, reset, flag_en, flags_in, flags_out);
+	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
 	//Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, reset, mem_out_a, flags_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	FSM fsm(clk, !reset, mem_out_a, flags_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
-	
-
+		
+	hexTo7Seg seg0(r0[15:12], Display[27:21]);
+	hexTo7Seg seg1(r0[11:8], Display[20:14]);
+	hexTo7Seg seg2(r0[7:4], Display[13:7]);
+	hexTo7Seg seg3(r0[3:0], Display[6:0]);	
 endmodule
 
 
