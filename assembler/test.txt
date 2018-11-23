@@ -1,3 +1,7 @@
 ADDI 5 r0
-ADDI 6 r1
+SUBI 6 r1
 ADD r0 r1
+LOAD r4 r6
+STOR r3 r12
+CMP r0 r1
+JMP EQ r14
