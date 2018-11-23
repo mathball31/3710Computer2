@@ -1,11 +1,12 @@
 
 
-module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en, pc_ld);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
+	input [9:0] pc_ins;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
 	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en, pc_ld;
@@ -24,7 +25,9 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 	parameter LOAD_2		= 4'b0111;
 	parameter JUMP_1		= 4'b1000;
 	parameter JUMP_2		= 4'b1001;
-	parameter STOP			= 4'b1010;
+	parameter JAL_1		= 4'b1010;
+	parameter JAL_2		= 4'b1011;
+	parameter STOP			= 4'b1100;
 	
 	parameter EQUAL 		= 4'b0000; 	// Equal 						Z=1
 	parameter NOT_EQ 		= 4'b0001; 	// Not Equal 					Z=0
@@ -261,9 +264,30 @@ module FSM(clk, reset, mem_in, flags, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_
 				pc_ld = 1'b0;
 				pc_en = 1'b0;
 				state = FETCH_1;
-			end	
+			end
+		
+			// 10
+			JAL_1:
+			begin
+				pc_ld = 1'b1;
+				pc_en = 1'b1;
+				mux_A_sel = instruction[3:0];					
+				state = JAL_2;
+			end
 			
-			//10
+			// 11
+			JAL_2:
+			begin
+				// We have designated r15 as our return register.
+				//  				R_TYPE   r15  mov	  source for mov
+				//instruction = {12'b0000_1111_1101, instruction[11:8]};
+				pc_ld = 1'b0;
+				pc_en = 1'b0;
+				//put pc_ins into reg of instruction[11:8] (should usually be r15)
+				state = R_TYPE;
+			end
+			
+			// 12
 			STOP:
 			begin
 				opcode 		= 16'bx;

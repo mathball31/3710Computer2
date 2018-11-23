@@ -52,17 +52,16 @@ module Datapath(clk, reset, Display);
 
 	RegMux muxB(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, mux_B_sel, mux_B_out);
 	
-	ALU alu(mux_A_out, mux_B_out, opcode, flags_in, flags_out[3], alu_bus);
+	ALU alu(mux_A_out, mux_B_out, opcode, flags_out[3], flags_in, alu_bus);
 	
 	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
-	//Memory mem(mux_B_out, data_b, pc_mux_out, addr_b, w_en_a, w_en_b, clk, mem_out_a, mem_out_b);
 	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, !reset, mem_out_a, flags_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	FSM fsm(clk, !reset, mem_out_a, flags_out, pc_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
 	hexTo7Seg seg0(r0[15:12], Display[27:21]);
@@ -147,7 +146,7 @@ module Flags(clk, reset, flag_en, flags_in, flags_out);
 	
 	always @(posedge clk) 
 	begin
-		if (reset) flags_out = 5'bxxxx;
+		if (reset) flags_out = 5'bxxxxx;
 		else if (flag_en) flags_out = flags_in;
 	end
 endmodule

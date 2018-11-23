@@ -1,0 +1,23 @@
+//addi 40 r1
+5140
+// jal r1 //addr 0040
+4f81
+//move r5 -> r0
+00d5
+//stop
+0000
+
+
+//function address
+@0040
+//load 0080 into r5
+	//addi 80 r2
+	5280
+	//load r5 r2 //addr 0080
+	4502
+//jmp r15 // return
+4ecf
+
+//data memory
+@0080
+dead

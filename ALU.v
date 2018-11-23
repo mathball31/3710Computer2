@@ -18,375 +18,279 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module ALU( A, B, Opcode, Flags, Cin, C
-    );
-input [15:0] A, B;
-input [15:0] Opcode;
-input Cin;
-output reg [15:0] C;
-/* ZCFNL
- * 4 = Zero flag
- * 3 = carry flag
- * 2 = Overflow flag
- * 1 = Negative flag
- * 0 = Low flag
- */
-output reg [4:0] Flags;
+module ALU(dest, src, opcode, carry_in, flags, out);
+	input [15:0] dest, src, opcode;
+	input carry_in;
 
-// opcode hi = 0000
-parameter AND = 4'b0001;
-parameter OR = 4'b0010;
-parameter XOR = 4'b0011;
-parameter NOT = 4'b0100;
-parameter ADD = 4'b0101;
-parameter ADDU = 4'b0110;
-parameter ADDC = 4'b0111;
-parameter ADDCU = 4'b1000;
-parameter SUB = 4'b1001;
-// 4'b1010
-parameter CMP = 4'b1011;
-parameter CMPU = 4'b1111;
-// 4'b1100
-parameter MOV = 4'b1101;
-//4'b1110
+	output reg [4:0] flags;
+	output reg [15:0] out;
 
-// opcodes 4'b0001-4'b0100 can be used (?)
-
-// opcode hi = 1000
-parameter LSHI = 4'b0000;		// can also be 0001
-parameter LSH = 4'b0100;
-parameter RSH = 4'b1000;
-parameter RSHI = 4'b1001;
-parameter ALSH = 4'b1010;
-parameter ARSH = 4'b1011;
-
-// opcode hi = 1001 = SUBI
-// ONLY assign 1001 to SUBI - the last 4 bits of opcode will be used for the immediate add operation
-
-// opcode hi = 1011 = CMPI
-// ONLY assign 1011 to CMPI - the last 4 bits of opcode will be used for the immediate add operation
-
-/*
-parameter ADDCUI = 8'b???? immHi;
-parameter CMPUI = 8'b??? immHi;
-*/
-
-/* We will do: ADD, ADDI, ADDU, ADDUI, ADDC, ADDCU, ADDCUI, ADDCI, SUB, SUBI, CMP, CMPI, CMPU/I, AND,
-OR, XOR, NOT, LSH, LSHI, RSH, RSHI, ALSH, ARSH, NOP/WAIT      */
-
-
-always @(A, B, Opcode, Cin)
-begin
-	C = 16'bx;
-	Flags = 5'bx;
-	// check the first four bits of the opcode
-	case (Opcode[15:12])
-		4'b0000:
-		begin
-			case (Opcode[7:4])
-				AND:
-				begin
-					C = A & B;
-					
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-					
-					// Set the carry(3), overflow(2), negative(1), and low(0) flags to 0
-					Flags[3:0] = 4'b0000;
-				end
-					
-				OR:
-				begin
-					C = A | B;
-					
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-					
-					Flags[3:0] = 4'b0000;
-				end
-					
-				XOR:
-				begin
-					C = A ^ B;
-					
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-						
-					Flags[3:0] = 4'b0000;
-				end
-					
-				NOT:
-				begin
-					C = ~A;
-					
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-						
-					Flags[3:0] = 4'b0000;
-				end
-					
-				ADD:
-				begin
-					{Flags[3], C} = A + B;
-					
-					// Set the Zero flag (4)
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-						
-					// Set the Overflow Flag (2)
-					Flags[2] = ((~A[15] & ~B[15] & C[15]) | (A[15] & B[15] & ~C[15]));
-
-					//negative(1), and low(0) flags to 0
-					Flags[1:0] = 2'b00; 
-				end
-				
-				ADDU:
-				begin
-					// The carry flag is set with the C assignment
-					{Flags[3], C} = A + B;
-					
-					// Set the 0 flag(4)
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-					
-					Flags[2] = ((A[15] | B[15]) & ~C[15]); // Check for overflow
-						
-					// The rest of the flags will be 0
-					Flags[1:0] = 2'b00;
-				end
-					
-				ADDC:
-				begin
-					{Flags[3], C} = A + B + Cin;
-					
-					// Set the Zero flag (4)
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-						
-					// Set the Overflow Flag (2)
-					Flags[2] = ((~A[15] & ~B[15] & C[15]) | (A[15] & B[15] & ~C[15])); 
-
-					// Set the negative(1) and low(0) flags to 0
-					Flags[1:0] = 2'b00; 
-				end
-					
-				ADDCU:
-				begin
-					// The carry flag is set with the C assignment
-					{Flags[3], C} = A + B + Cin;
-					
-					// Set the zero flag(4)
-					Flags[4] = (C == 16'b0000_0000_0000_0000); 
-					
-					Flags[2] = ((A[15] | B[15]) & ~C[15]); // Check for overflow
-						
-					// The rest of the flags will be 0
-					Flags[1:0] = 2'b00;
-				end
-				
-				SUB:
-				begin
-					C = A - B;
-					// Set the zero(4) flag
-					Flags[4] = (C == 16'b0000_0000_0000_0000); 
-					
-					// Set the overflow flag (2)
-					Flags[2] = ((~A[15] & B[15] & C[15]) | (A[15] & ~B[15] & ~C[15]));
-					
-					// Set the Carry(3), negative(1), and low(0) flags to 0
-					Flags[1:0] = 2'b00; 
-					Flags[3] = 1'b0;
-				end
-				
-				CMP:
-				begin
-					// 11.12 D&M changed from "<"
-					if( $signed(A) >= $signed(B) ) 
-						Flags[1:0] = 2'b11;
-					else 
-						Flags[1:0] = 2'b00;
-						
-					Flags[4] = ($signed(A) == $signed(B)); // set the zero flag
-						
-					C = 16'b0000_0000_0000_0000;
-					Flags[3:2] = 2'b00;
-				end
-				
-				CMPU:
-				begin
-					// 11.12 D&M changed from "<"
-					Flags[0] = (A >= B);  // negative flag not set for unsigned operations
-					
-					Flags[3:1] = 3'b000;
-					
-					Flags[4] = (A == B);
-					
-					C = 16'b0000_0000_0000_0000;
-				end
-				
-				MOV:
-				begin
-					Flags[4] = (B == 16'b0);
-					Flags[3:0] = 4'b0;
-					C = B;
-				end
-				
-				default: 		// used for WAIT and NOP - they're the same thing
-				begin
-					// when there is no opcode to use
-					C = 16'bx;
-					Flags = 5'b00000;
-				end
-			endcase
-		end
+	// flags
+	parameter Z	= 4; // Zero
+	parameter C	= 3; // Carry
+	parameter F = 2; // overFlow
+	parameter N	= 1; // Negative
+	parameter L	= 0; // Low
 	
-		4'b0101:
-		begin
-			// reserved for ADDI, add immediate, ONLY
-			// that way, when this is called, ALU knows immediately that it just wants to do an add immediate
-			// in immediate instructions, the low bit of Opcode is the immediate
-			{Flags[3], C} = A + Opcode[7:0];
-			
-			// Set the Zero flag (4)
-			Flags[4] = (C == 16'b0000_0000_0000_0000); 
-				
-			// Set the Overflow Flag (2)
-			Flags[2] = ((~A[15] & ~B[15] & C[15]) | (A[15] & B[15] & ~C[15])); 
-
-			// Set the Carry(3), negative(1), and low(0) flags to 0
-			Flags[1:0] = 2'b00; 
-		end
-		
-		4'b0110:
-		begin
-			// for ADDUI, add unsigned immediate
-			// just like above in ADDI, except for unsigned integers
-			// reserved for ADDI, add immediate, ONLY
-			// that way, when this is called, ALU knows immediately that it just wants to do an add immediate
-			// in immediate instructions, the low bit of Opcode is the immediate
-
-			// concatenate the last 4 bits of opcode with the last 4 bits of B in a temporary register
-			// ** treat B as the immediate value.  We will take care of it elsewhere.
-
-			{Flags[3], C} = A + {8'b0, Opcode[7:0]};
-			
-			// Set the Zero flag (4)
-			Flags[4] =  (C == 16'b0000_0000_0000_0000); 
-				
-			Flags[2] = ((A[15] | B[15]) & ~C[15]); // Check for overflow
-						
-			// The rest of the flags will be 0
-			Flags[1:0] = 2'b00;
-		end
-			
-		4'b0111:
-		begin
-			// ADDCI, add with a carry and an immediate (?)
-			// same as the previous two cases, except with a carry
-			// reserved for ADDI, add immediate, ONLY
-			// that way, when this is called, ALU knows immediately that it just wants to do an add immediate
-			// concatenate the last 4 bits of opcode with the last 4 bits of B in a temporary register
-			// ** treat B as the immediate value.  We will take care of it elsewhere.
-			{Flags[3], C} = A + Opcode[7:0] + Cin;
-			
-			// Set the Zero flag (4)
-			Flags[4] = (C == 16'b0000_0000_0000_0000); 
-				
-			// Set the Overflow Flag (2)
-			Flags[2] = ((~A[15] & ~B[15] & C[15]) | (A[15] & B[15] & ~C[15])); 
-
-			// Set the Carry(3), negative(1), and low(0) flags to 0
-			Flags[1:0] = 2'b00; 
-		end
-		
-		4'b1000:
-		begin
-			// opcode is for ALL shifts
-			case (Opcode[7:4])
-				LSHI:
-				// Left shift of A by B bits
-				begin
-					C = A << Opcode[3:0];
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-			
-					Flags[3:0] = 4'b0000;
-				end
-				
-				LSH:
-				begin
-					// Left shift of A by 1 bit (no sign extension)
-					C = A << 1;
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-				
-					Flags [3:0] = 4'b0000;
-				end
-				
-				RSHI:
-				begin
-					// Right shift of A by B bits
-					C = A >> B;
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-						
-					Flags [3:0] = 4'b0000;
-				end
-				
-				RSH:
-				begin
-					// Right shift of A by 1 bit (no sign extension)
-					C = A >> 1;
-					Flags[4] = (C == 16'b0000_0000_0000_0000);
-
-					Flags [3:0] = 4'b0000;
-				end
-				
-				ALSH:
-				begin
-					// Implement left shift of A by 1 bit (with sign extension)
-					if (A[15] == 1'b1)
-						begin
-							C = A << 1;
-							C[15] = 1'b1;
-
-							// This result can't be zero
-							Flags[4] = 1'b0;
-						end
-					else
-						begin
-							C = A << 1;
-							Flags[4] = (C == 16'b0000_0000_0000_0000);
-						end
-						
-					Flags[3:0] = 4'b0000;
-				end
-				
-				ARSH:
-				begin
-					// right shift of A by 1 bit (with sign extension)
-					if (A[15] == 1'b1)
+	// opcode high
+	parameter R_TO_R 		= 4'b0000;
+	parameter ADDI 		= 4'b0101;
+	parameter ADDUI		= 4'b0110;
+	parameter ADDCI		= 4'b0111;
+	parameter MULI			= 4'b1110;
+	parameter SUBI			= 4'b1001;
+	parameter SUBCI		= 4'b1010;
+	parameter CMPI			= 4'b1011;
+	parameter ANDI			= 4'b0001;
+	parameter ORI			= 4'b0010;
+	parameter XORI			= 4'b0011;
+	parameter MOVI			= 4'b1101;
+	parameter SHIFT		= 4'b1000;
+	parameter LUI			= 4'b1111;
+	
+	// opcode low R_TO_R
+	parameter ADD	= 4'b0101;
+	parameter ADDU	= 4'b0110;
+	parameter ADDC	= 4'b0111;
+	parameter MUL	= 4'b1110;
+	parameter SUB	= 4'b1001;
+	parameter SUBC	= 4'b1010;
+	parameter CMP	= 4'b1011;
+	parameter AND	= 4'b0001;
+	parameter OR	= 4'b0010;
+	parameter XOR	= 4'b0011;
+	parameter MOV	= 4'b1101;
+	
+	// opcode low SHIFT
+	parameter LSH		= 4'b0100;
+	parameter LLSHI	= 4'b0000;
+	parameter LRSHI	= 4'b0001;
+	parameter ASH		= 4'b0110;
+	parameter ALSHI	= 4'b0010;
+	parameter ARSHI	= 4'b0011;
+	
+	always @(dest, src, opcode, carry_in)
+	begin
+		out = 16'bx;
+		flags = 5'bx;
+		// check opcode high
+		case (opcode[15:12])
+			R_TO_R:
+			begin
+				// check opcode low
+				case (opcode[7:4])	
+					ADD:
 					begin
-						C = A >> 1;
-						C[15] = 1'b1;
-						// This result can't be zero
-						Flags[4] = 1'b0;
-					end 
-					else
-					begin
-						C = A >> 1;
-						Flags[4] = (C == 16'b0000_0000_0000_0000);
+						{flags[C], out} = dest + src;						
+						flags[F] = ((~dest[15] & ~src[15] & out[15]) | (dest[15] & src[15] & ~out[15])); 
 					end
 					
-					Flags[3:0] = 4'b0000;
-				end
+					ADDU:
+					begin
+						out = dest + src;						
+					end
+						
+					ADDC:
+					begin
+						{flags[C], out} = dest + src + carry_in;						
+						flags[F] = ((~dest[15] & ~src[15] & out[15]) | (dest[15] & src[15] & ~out[15])); 
+					end
+					
+					MUL:
+					begin
+						out = dest * src;
+					end
+					
+					SUB:
+					begin
+						out = dest - src;
+						flags[F] = ((~dest[15] & src[15] & out[15]) | (dest[15] & ~src[15] & ~out[15]));
+						flags[C] = src > dest;
+					end
+					
+					SUBC:
+					begin
+						out = dest - src - carry_in;
+						flags[F] = ((~dest[15] & src[15] & out[15]) | (dest[15] & ~src[15] & ~out[15]));
+						flags[C] = src > (dest - carry_in);
+					end
+					
+					CMP:
+					begin
+						flags[L] = (src > dest);
+						flags[N] = ($signed(src) > $signed(dest));
+						flags[Z] = (src == dest);
+						out = 16'b0;
+					end
+
+					AND:
+					begin
+						out = dest & src;
+					end
+						
+					OR:
+					begin
+						out = dest | src;
+					end
+						
+					XOR:
+					begin
+						out = dest ^ src;
+					end
+						
+					MOV:
+					begin
+						out = src;
+					end
+
+					default: 		// used for WAIT and NOP - they're the same thing
+					begin
+						// when there is no opcode to use
+						out = 16'bx;
+					end
+				endcase 
+			end // R_TO_R
+		
+			ADDI:
+			begin
+				{flags[C], out} = dest + opcode[7:0];
+				flags[F] = ((~dest[15] & ~opcode[7] & out[15]) | (dest[15] & opcode[7] & ~out[15])); 
+			end
+			
+			ADDUI:
+			begin
+				out = dest + {8'b0, opcode[7:0]};
+			end
 				
+			ADDCI:
+			begin
+				{flags[C], out} = dest + opcode[7:0] + carry_in;
+				flags[F] = ((~dest[15] & ~opcode[7] & out[15]) | (dest[15] & opcode[7] & ~out[15])); 
+			end
+			
+			MULI:
+			begin
+				out = dest * opcode[7:0];
+			end
+			
+			SUBI:
+			begin
+				out = dest - opcode[7:0];
+				flags[F] = ((~dest[15] & opcode[7] & out[15]) | (dest[15] & ~opcode[7] & ~out[15]));
+				flags[C] = {{8{opcode[7]}}, opcode[7:0]} > dest;
+			end
+			
+			SUBCI:
+			begin
+				out = dest - opcode[7:0] - carry_in;
+				flags[F] = ((~dest[15] & opcode[7] & out[15]) | (dest[15] & ~opcode[7] & ~out[15]));
+				flags[C] = {{8{opcode[7]}}, opcode[7:0]} > (dest - carry_in);
+			end
+			
+			CMPI:
+			begin
+				flags[L] = ({8'b0, opcode[7:0]} > dest);
+				flags[N] = ($signed({{8{opcode[7]}}, opcode[7:0]}) > $signed(dest));
+				flags[Z] = ({{8{opcode[7]}}, opcode[7:0]} == dest);
+				out = 16'b0;			
+			end
+			
+			ANDI:
+			begin
+				out = {dest[15:8], (dest[7:0] & opcode[7:0])};
+			end
+			
+			ORI:
+			begin
+				out = {dest[15:8], (dest[7:0] | opcode[7:0])};
+			end
+			
+			XORI:
+			begin
+				out = {dest[15:8], (dest[7:0] ^ opcode[7:0])};
+			end
+			
+			MOVI:
+			begin
+				out = {8'b0, opcode[7:0]};
+			end
+			
+			SHIFT:
+			begin
+				// check opcode low
+				case (opcode[7:4])
+					// Logical shift
+					LSH:
+					begin
+						//if negative
+						if (src[4])
+						begin
+							out = dest >> (-src[4:0]);
+						end
+						else
+						begin
+							out = dest << src[4:0];
+						end
+					end
+					
+					// Logical Left Shift Immediate
+					LLSHI:
+					begin
+						out = dest << opcode[3:0];
+					end
+					
+					// Logical Right Shift Immediate
+					LRSHI:
+					begin
+						out = dest >> opcode[3:0];
+					end
+					
+					// Arithmetic Shift
+					ASH:
+					begin
+						//if negative
+						if (src[4])
+						begin
+							out = dest >>> (-src[4:0]);
+						end
+						else
+						begin
+							out = dest <<< src[4:0];
+						end
+					end
+					
+					// Arithmetic left Shift Immediate
+					ALSHI:
+					begin
+						out = dest <<< opcode[3:0];
+					end
+					
+					// Arithmetic Right Shift Immediate
+					ARSHI:
+					begin
+						out = dest >>> opcode[3:0];
+					end
+					
+					default: 		// used for WAIT and NOP - they're the same thing
+					begin
+						// when there is no opcode to use
+						out = 16'bx;
+					end	
+				endcase 
+			end // shift
+			
+			LUI:
+			begin
+				out = {opcode[7:0], dest[7:0]};
+			end
+				
+			
 			default: 		// used for WAIT and NOP - they're the same thing
 				begin
 					// when there is no opcode to use
-					C = 16'bx;
-					Flags = 5'b00000;
-				end	
-			endcase
-		end
-		
-		default: 		// used for WAIT and NOP - they're the same thing
-				begin
-					// when there is no opcode to use
-					C = 16'bx;
-					Flags = 5'b00000;
+					out = 16'bx;
 				end
-	endcase
-end
+		endcase
+	end
 
 endmodule
