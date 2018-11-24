@@ -1,0 +1,6 @@
+//Move immediate test
+// MOVI ad r0
+d0ad
+// LUI de r0
+f0de
+//result r0 = dead

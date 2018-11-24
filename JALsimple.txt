@@ -1,0 +1,13 @@
+//JAL way simple
+
+//MOVI ff r1
+d1ff
+//JAL r15 r1
+4f81
+
+@00ff
+//MOV r15 r0
+00df
+
+//stop
+0000

@@ -21,3 +21,6 @@
 //data memory
 @0080
 dead
+
+
+//result r0 = dead

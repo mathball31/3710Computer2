@@ -27,7 +27,8 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 	parameter JUMP_2		= 4'b1001;
 	parameter JAL_1		= 4'b1010;
 	parameter JAL_2		= 4'b1011;
-	parameter STOP			= 4'b1100;
+	parameter JAL_3		= 4'b1100;
+	parameter STOP			= 4'b1101;
 	
 	parameter EQUAL 		= 4'b0000; 	// Equal 						Z=1
 	parameter NOT_EQ 		= 4'b0001; 	// Not Equal 					Z=0
@@ -138,6 +139,10 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 						begin
 							state = STORE_1;
 						end
+						4'b1000:
+						begin
+							state = JAL_1;
+						end
 						4'b1100:
 						begin
 							state = JUMP_1;
@@ -154,6 +159,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				mux_B_sel 	= instruction[3:0];  	// Source
 				flag_en		= 1'b1;
 				
+				// don't write to registers if instruction is CMP or CMPI
 				if ((instruction[15:12] == 0 && instruction[7:4] == CMP) || (instruction[15:12] == CMPI))
 				begin
 					reg_en 	= 16'b0;		
@@ -274,18 +280,31 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				pc_ld = 1'b1;
 				pc_en = 1'b1;
 				mux_A_sel = instruction[3:0];					
+				
+				// Set low byte of register to low byte of pc
+				// MOVI pc_ins[7:0] r[instruction[11:8]]
+				instruction = {4'b1101, instruction[11:8], pc_ins[7:0]};
 				state = JAL_2;
 			end
 			
 			// 11
 			JAL_2:
 			begin
-				// We have designated r15 as our return register.
-				//  				R_TYPE   r15  mov	  source for mov
-				//instruction = {12'b0000_1111_1101, instruction[11:8]};
-				pc_ld = 1'b0;
-				pc_en = 1'b0;
-				//put pc_ins into reg of instruction[11:8] (should usually be r15)
+				pc_ld 		= 1'b0;
+				pc_en 		= 1'b0;
+				opcode 		= instruction;
+				mux_A_sel 	= instruction[11:8];	// Destination
+				mux_B_sel 	= instruction[3:0];  	// Source
+				reg_en 		= mux_out;
+				state = JAL_3;
+			end
+			
+			// 12
+			JAL_3:
+			begin
+				// set high byte of register to high byte of pc
+				// LUI pc_ins[9:8] r[instruction[11:8]]
+				instruction = {4'b1111, instruction[11:8], 6'b0, pc_ins[9:8]};
 				state = R_TYPE;
 			end
 			
@@ -299,9 +318,9 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				pc_sel 		= 1'b1;
 				mem_w_en_a 	= 1'b0;
 				mem_w_en_b 	= 1'b0;
-				reg_en 		= 16'bx;
+				reg_en 		= 16'b0;
 				flag_en 		= 1'b0;
-				pc_en 		= 1'b1;
+				pc_en 		= 1'b0;
 				pc_ld			= 1'b0;
 				instruction = 16'bx;
 				state = STOP;
@@ -310,7 +329,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 		endcase
 	end	
 	
-	Mux4to16 regEnable(mem_in[11:8], mux_out);
+	Mux4to16 regEnable(instruction[11:8], mux_out);
 	
 endmodule
 

@@ -143,7 +143,7 @@ module ALU(dest, src, opcode, carry_in, flags, out);
 						out = src;
 					end
 
-					default: 		// used for WAIT and NOP - they're the same thing
+					default:
 					begin
 						// when there is no opcode to use
 						out = 16'bx;
@@ -271,7 +271,7 @@ module ALU(dest, src, opcode, carry_in, flags, out);
 						out = dest >>> opcode[3:0];
 					end
 					
-					default: 		// used for WAIT and NOP - they're the same thing
+					default:
 					begin
 						// when there is no opcode to use
 						out = 16'bx;
@@ -285,7 +285,7 @@ module ALU(dest, src, opcode, carry_in, flags, out);
 			end
 				
 			
-			default: 		// used for WAIT and NOP - they're the same thing
+			default:
 				begin
 					// when there is no opcode to use
 					out = 16'bx;
