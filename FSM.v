@@ -47,8 +47,9 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 	parameter NO_JUMP		= 4'b1111; 	// Never jump					0
 	
 	// Need these so they don't overwrite register
-	parameter CMP 		= 4'b1011; 
-	parameter CMPU		= 4'b1111;
+	parameter CMP 		= 4'b1011;
+	parameter CMPI		= 4'b1011;
+
 	
 	parameter ZERO 	= 4;
 	parameter CARRY 	= 3;
@@ -120,6 +121,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				begin
 					state = STOP;
 				end
+				
 				else if (instruction[15:12] != 4'b0100) 
 				begin
 					state = R_TYPE;
@@ -152,10 +154,11 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				mux_B_sel 	= instruction[3:0];  	// Source
 				flag_en		= 1'b1;
 				
-				if (instruction[7:4] == CMP || instruction[7:4] == CMPU)
+				if ((instruction[15:12] == 0 && instruction[7:4] == CMP) || (instruction[15:12] == CMPI))
 				begin
-					reg_en 	= 16'bx;		
+					reg_en 	= 16'b0;		
 				end
+				
 				else
 				begin
 					reg_en 	= mux_out;
@@ -163,8 +166,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				
 				state 		= FETCH_1;
 			end
-			
-			
+					
 			// 4
 			STORE_1:
 			begin

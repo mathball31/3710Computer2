@@ -2,32 +2,32 @@
 // Hi, Sam! We're doing a real simple test right now... feel free to change 
 // this file to whatever test you had in mind.
 
-// 0:  0101 - add immediate 0000 - register 0 - value 5
+// 0:  0101 - add immediate 0000 - register 0 - value 6
 // 16'b0101_0000_0000_0110;
 5006
 
-// 1: compare r0 to r1
-// 16'b0000_0000_1011_0001
-00b1
+// 1: compare r0 to r1 // CMP r0 r1
+// 16'b0000_0001_1011_0000
+01b0
 
-// 2: jump if >= than to instruction in r0 (6)
+// 2: jump if >= than to instruction in r0 (6) // r0 >= r1
 // 16'b0100_1101_1100_0000
 4dc0
 // 3: filler
-3333
+0000
 
 
 // 4: filler
-4444
+0000
 
 // 5: filler
-5555
+0000
 
-// 5: add immediate into r0
+// 6: add immediate into r0
 // 16'b0101_0000_0000_1001
 5009
 
-// 6: STOP
+// 7: STOP
 // 16'b0000_0000_0000_0000
 0000
 

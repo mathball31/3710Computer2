@@ -16,4 +16,9 @@
 // 16'b0100_0010_0000_0001
 4201
 
-// Result:  the value 11 (0xB) should be in r2
+// 4: move r2 -> r0
+00d2
+
+// 5: stop
+0000
+// Result:  the value 11 (0xB) should be in r0
