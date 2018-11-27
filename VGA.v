@@ -119,7 +119,35 @@ module BitGen (
 	output reg [7:0] rgb);
 	
 	// First just dipslay vertical bars of each color:
+	parameter BLACK = 8'b000_000_00;
+	parameter BLUE = 8'b000_000_11;
+	parameter GREEN = 8'b000_111_00; 
+	parameter CYAN = 8'b000_111_11;
+	parameter RED = 8'b111_000_00;
+	parameter MAGENTA = 8'b111_000_11;
+	parameter YELLOW = 8'b111_111_00;
+	parameter WHITE = 8'b111_111_11; 
 	
+	
+	 
+	// there are 640 pixels in a row, and 480 in a column
+	always@(*) // paint the bars
+		if (~bright) 
+			rgb = BLACK; // force black if not bright 
+		else if ((hCount >= 81) && (hCount <= 160))
+			rgb = BLUE;
+		else if ((hCount >= 161) && (hCount <=240))
+			rgb = GREEN;
+		else if ((hCount >= 241) && (hCount <= 320))
+			rgb = CYAN;
+		else if ((hCount >= 321) && (hCount <= 400))
+			rgb = RED;
+		else if ((hCount >= 401) && (hCount <= 480))
+			rgb = MAGENTA;
+		else if ((hCount >= 481) && (hCount <= 560))
+			rgb = YELLOW;
+		else if ((hCount >= 561) && (hCount <= 640))
+			rgb = WHITE;
 	
 	/** glyph number is hCount and vCount minus the low three bits
 	 * glyph bits are the low-order 4 bits in each of hCount and vCount
