@@ -1,7 +1,17 @@
 
-/* Overall module of the VGA */
-module VGA ();
+/* Driver module of the VGA */
+module VGA (
+	input clk,
+	output hSync, vSync, bright,
+	output rgb
+	);
 
+	wire [9:0] hCount, vCount;
+	
+	VGAControl control (.clock(clk), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hCount), .vCount(vCount));
+	
+	BitGen gen (.bright(bright), .pixelData(8'b0000_0000), .hCount(hCount), .vCount(vCount), .rgb(rgb));
+	
 endmodule
 
 
@@ -132,7 +142,8 @@ module BitGen (
 	 
 	// there are 640 pixels in a row, and 480 in a column
 	always@(*) // paint the bars
-		if (~bright) 
+	begin
+		if ((hCount >= 0) && (hCount <=80) || ~bright) 
 			rgb = BLACK; // force black if not bright 
 		else if ((hCount >= 81) && (hCount <= 160))
 			rgb = BLUE;
@@ -148,6 +159,9 @@ module BitGen (
 			rgb = YELLOW;
 		else if ((hCount >= 561) && (hCount <= 640))
 			rgb = WHITE;
+		else
+			rgb = BLACK;
+	end
 	
 	/** glyph number is hCount and vCount minus the low three bits
 	 * glyph bits are the low-order 4 bits in each of hCount and vCount
