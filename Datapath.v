@@ -21,10 +21,11 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, Display);
+module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
 	
-	input clk, reset;
+	input clk, reset, serial_data;
 	wire [15:0] alu_bus;
+	output snes_clk, data_latch;
 	output [27:0] Display;
 	
 	wire [4:0] flags_in, flags_out;
@@ -44,7 +45,10 @@ module Datapath(clk, reset, Display);
 	wire [9:0] pc_out;
 	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0];	
 	wire [15:0] mem_out_a, mem_out_b;
-	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;
+	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;	
+	
+	wire [11:0] button_data;
+	
 	
 	RegBank regFile(clk, !reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
 
@@ -57,6 +61,8 @@ module Datapath(clk, reset, Display);
 	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
+	
+	SNES_Control snes_control(clk, serial_data, snes_clk, data_latch, button_data);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
 	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
