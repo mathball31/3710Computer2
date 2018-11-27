@@ -6,7 +6,7 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data);
 	output reg [11:0] button_data;
 	
 	reg [19:0] counter 		= PULSE;
-	reg [19:0] temp_counter = PULSE;
+	reg [19:0] temp_counter;
 	reg [3:0] button_counter;
 	reg latch_complete = 1'b0;
 	
@@ -41,18 +41,22 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data);
 	begin		
 		if (counter == PULSE)
 		begin
-			data_latch 	= 1'b1;
-			counter 		= 20'b0;
-			temp_counter = counter;
-			snes_clk 	= 1'b1;
+			
+			counter 			= 20'b0;
+			temp_counter 	= counter;
 			button_counter = 4'b1111;
+			latch_complete = 1'b0;
+			
+			snes_clk 		= 1'b1;
+			data_latch 		= 1'b1;
 		end
 		
 		if ((counter - temp_counter) == TWELVEu)
 		begin
-			data_latch = 1'b0;
-			temp_counter = counter;
+			temp_counter 	= counter;
 			latch_complete = 1'b1;
+			
+			data_latch 		= 1'b0;
 		end
 		
 		else if ((counter - temp_counter) == SIXu && latch_complete)
