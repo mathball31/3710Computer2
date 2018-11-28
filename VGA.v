@@ -9,15 +9,14 @@ module VGA (
 	wire [9:0] hCount, vCount;
 	reg slowClk = 1'b0;
 	
-	
 	always @ ( posedge clk)
 	begin
 		slowClk <= ~slowClk;
 	end
 	
-	VGAControl control (.clock(slowClk), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hCount), .vCount(vCount));
+	VGAControl control (slowClk, hSync, vSync, bright, hCount, vCount);
 	
-	BitGen gen (.bright(bright), .pixelData(8'b0000_0000), .hCount(hCount), .vCount(vCount), .rgb(rgb));
+	BitGen gen (bright, 8'b0000_0000, hCount, vCount, rgb);
 	
 endmodule
 
