@@ -5,7 +5,7 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data);
 	output reg snes_clk, data_latch;
 	output reg [11:0] button_data;
 	
-	reg [19:0] counter 		= PULSE;
+	reg [19:0] counter = PULSE;
 	reg [19:0] temp_counter;
 	reg [3:0] button_counter;
 	reg latch_complete = 1'b0;
