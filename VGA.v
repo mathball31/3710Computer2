@@ -175,7 +175,7 @@ module BitGen (
 	 *
 	 * Use 16 pixels square for each block.  This results in a grid of 40 x 30.
 	 * the glyphs will be stored somewhere in memory:  They should be:
-	 *		* The letters A - Z plus a few special characters (dash)
+	 *		* The letters A - Z plus a few special characters (dash, colon, exlamation point)
 	 *    * Green glyphs for green snake
 	 *    * Blue glyphs for blue snake
 	 *    * Red glyphs for food
@@ -190,5 +190,18 @@ module BitGen (
 	 *
 	 * Display the correct pixel of the glyph
 	 **/
+	 
+	 /*pseudo code for glyphs
+	 
+	 hGlyphCount = hCount[9:4];
+	 hInnerGlyphCount = hCount[3:0];
+	 
+	 vGlyphCount = vCount[9:4];
+	 vInnerGlyphCount = vCount[3:0];
+	 
+	 GetGlyphFromWorld
+	 
+	 */
+	 
 
 endmodule
