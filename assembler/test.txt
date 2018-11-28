@@ -6,15 +6,19 @@ LOAD r4 r6
 STOR r3 r12
 CMP r0 r1
 JMP r15 EQ
-MOVI 15 r12
+MOVI 255 r12
 // //aelfiaje
+
+
+
 LUI 14 r8
 //This is a comment
 @0100
 NOP
 NOP
 NOP
-JMP_IMM 0x100 r7 UC
+JAL_IMM 0x100 r7 UC r8
+JAL_IMM 0x100 r7 UC
 REL_JMP 4 r12 UC
 LSH r3 r15
 LLSHI 8 r1
@@ -26,8 +30,10 @@ as;ldfjawe
 aoibisah
 */
 ADDI -3 r0
+MOV_IMM 0xffff r4
+MOV_IMM 65535 r4
 //memory
-@5000
+@300
 INIT
 123a
 138a

@@ -2,6 +2,18 @@
 3710 Assembler
 (Mostly) Follows the CR16 manual on ISA.pdf (linked on the course)
 
+Usage: 
+    python assembler.py path/to/input_file /path/to/output_file
+
+    takes an input file written in our homebrew (mostly) CR16 assembly
+    and outputs a file in machine code for our CPU.
+
+    Any output after the first two lines indicates an error, 
+    but the file will still likely compile.
+    *** PLEASE RESOLVE ERRORS OR YOU WILL BE SAD***
+
+If there is any output except "name of source file" and "name of dest f
+
 Commands take the following possible forms:
     IMM val dst     //val must fit in a single byte. can be signed or unsigned
         ADDI 100 r0
@@ -37,8 +49,18 @@ Immediates should be able to be entered as decimal or hex (prefixed with 0x)
 
 Available commands are in imm_ins, r_to_r_ins, and shift_ins
 helpful macros are in macro_ins
-    Should probably use REL_JMP or JMP_IMM instead of JMP in almost all cases.
+    All macros (except NOP) consist of two words with an underscore, (e.g. JMP_IMM)
+    No other instructions have an underscore
+
+    You should almost never (if ever) use JMP, MOVI, LUI, or JAL.
+    Instead use the macros JMP_IMM REL_JMP, MOV_IMM, and JAL_IMM
     It will make your life easier.
+
+    The macros have helpful error checking to help prevent you from 
+    shooting yourself in the foot. 
+    The raw instructions have not checks to see if addresses are in the valid range,
+    so it is on YOU as the programmer to ensure that all LOAD, STOR, JMP, and JAL isntructions
+    only access/jump to valid locations. Please use the macros if at all possible
 
 ***MACROS -- NOT DEFINED IN ISA***
 REL_JMP offset reg cond
@@ -50,20 +72,34 @@ REL_JMP offset reg cond
 
 JMP_IMM addr reg con
     - same as REL_JMP, except using an absolute address instead of an offset
+    - addr must fit in two bytes, and jump to a valid code location
+JAL_IMM addr reg con [lnk]
+    - same as JMP_IMM, but JAL
+    - lnk defaults to r15 if none specified
+    - addr must fit in two bytes, and jump to a valid code location
+MOV_IMM val reg
+    - similar to MOVI, but allows full byte values
+    - equivalent to 
+        MOVI val(lower byte) reg
+        LUI val(upper byte) reg
+    - val must fit in two bytes
 '''
-import sys
+import sys, traceback
 
 #TODO
-PROGRAM_START   = int(0x0000)
-PROGRAM_END     = int(0x1000)
+PROGRAM_START   = int(0x000)
+PROGRAM_END     = int(0x3FF)
+ADDR_END        = int(0x3FF)
 
 
 
-#TODO add JMP
+#not defined in ISA, defined in block comment above
 macro_ins = {
-    "REL_JMP":  "0",
-    "JMP_IMM":  "1",
-    "NOP":      "2"
+    "REL_JMP":      "0",
+    "JMP_IMM":      "1",
+    "JAL_IMM":      "2",
+    "MOV_IMM":      "3",
+    "NOP":          "6"
 }
 
 imm_ins = {
@@ -134,26 +170,39 @@ jmp_cond = {
 }
 
 line_num = 0
+# *** ONLY CHANGE THIS WITH set_memory_addr ***
 memory_addr = 0
 
+#print an error message with line number
 def error(msg):
-    print("line " + str(line_num) + ": " + msg)
+    print("ERROR: line " + str(line_num) + ": " + msg)
 
+#safely set memory_addr
+def set_memory_addr(val):
+    global memory_addr 
+    memory_addr = val
+    if memory_addr > ADDR_END:
+        error("Memory location too big: " + str(memory_addr))
 
 #accepts a register (e.g. r13) and return number in hex (e.g. d)
 def reg_to_hex(reg):
+    if not reg.startswith("r"):
+        error("malformed register: " + reg)
     ret = hex(int(reg.replace('r', ''))).replace("0x", '')
     if len(ret) > 1:
         error("register is too big")
         return "-"
     return ret
 
+# takes a 1 byte immediate and converts to 1 hex character
 def imm_to_hex(ins):
     imm = ""
     if ins.startswith("0x"):
         imm = ins.replace("0x", '')
     else:
         val = int(ins)
+        if val > 255:
+            error("immediate is larger than 1 byte")
         imm_hex = hex((val + (1 << 8)) % (1 << 8))
         imm = imm_hex.replace("0x", '')
     ret = ""
@@ -165,10 +214,12 @@ def imm_to_hex(ins):
         error("imm_to_hex error, " + str(len(imm)) + "chars")
         return "--"
 
+# takes a 2 byte immediate and converts to 4 hex characters
 def int_to_hex(val):
+    if val > 65535:
+        error("immediate is larger than 2 bytes")
     imm_hex = hex((val + (1 << 16)) % (1 << 16))
     imm = imm_hex.replace("0x", '')
-    ret = ""
     while len(imm) < 4:
         imm = "0" + imm
     if len(imm) == 4:
@@ -179,6 +230,7 @@ def int_to_hex(val):
 
 
 
+# parses a standard (NOT macro)) instruction
 def parse_ins(line):
     code = list("____\n") 
     tokens = line.split()
@@ -186,7 +238,6 @@ def parse_ins(line):
     if len(tokens) < 2 or len(tokens) > 3:
         error("wrong number of tokens")
     elif tokens[0] in r_to_r_ins:
-        print("r_to_r")
         #ins
         code[0] = imm_ins["R_TO_R"]
         #dest
@@ -196,10 +247,8 @@ def parse_ins(line):
         #src
         code[3] = reg_to_hex(tokens[1])
     elif tokens[0] in jmp_ld_str_ins:
-        print("jmp_ld_str")
         code[0] = imm_ins["JMP_LD_STR"]
         if tokens[0] == "JMP":
-            print("jmp")
             #cond
             code[1] = jmp_cond[tokens[2]]
         elif tokens[0] == "JAL" and len(tokens) == 2:
@@ -214,14 +263,12 @@ def parse_ins(line):
         code[3] = reg_to_hex(tokens[1])
 
     elif tokens[0] in imm_ins:
-        print("imm")
         code[0] = imm_ins[tokens[0]]
         code[1] = reg_to_hex(tokens[2])
         imm = imm_to_hex(tokens[1])
         code[2] = imm[0]
         code[3] = imm[1]
     elif tokens[0] in shift_ins:
-        print("shift")
         code[0] = imm_ins["SHIFT"]
         code[1] = reg_to_hex(tokens[2])
         code[2] = shift_ins[tokens[0]]
@@ -230,7 +277,7 @@ def parse_ins(line):
         else:
             code[3] = imm_to_hex(tokens[1])[1]
     else:
-        print("line " + line_num + ": error")
+        error("parse_ins error")
 
     return "".join(code)
 
@@ -241,8 +288,7 @@ dest_file = open(dest_filename, "w")
 
 def write_ins(ins):
     dest_file.write(ins)
-    global memory_addr
-    memory_addr += 1
+    set_memory_addr(memory_addr + 1)
 
 print("name of source file: " + source_file.name)
 print("name of dest file: " + dest_file.name)
@@ -251,96 +297,137 @@ print("name of dest file: " + dest_file.name)
 memory_block = False
 block_comment = 0
 for line in source_file:
-    line_num += 1
-    tokens = line.split()
+    try: 
+        line_num += 1
+        tokens = line.split()
 
-    #comments
-    if line.startswith("/*"):
-        block_comment += 1
-        continue
+        #empty line
+        if len(tokens) == 0:
+            continue
+        #comments
+        if line.startswith("/*"):
+            block_comment += 1
+            continue
 
-    elif line.startswith("*/"):
-        block_comment -= 1
-        if block_comment < 0:
-            error("unmatched */")
-        continue
+        elif line.startswith("*/"):
+            block_comment -= 1
+            if block_comment < 0:
+                error("unmatched */")
+            continue
 
-    elif block_comment > 0:
-        continue
+        elif block_comment > 0:
+            continue
 
-    elif line.startswith("//"):
-        continue
+        elif line.startswith("//"):
+            continue
 
-    elif line.startswith("@"):
-        memory_addr = int(line.replace('@', ''), 16)
-        print("location: " + hex(memory_addr))
-        dest_file.write(line)
-        continue
+        elif line.startswith("@"):
+            set_memory_addr(int(line.replace('@', ''), 16))
+            dest_file.write(line)
+            continue
 
-    elif line == "INIT\n":
-        if memory_block:
-            error("unmatched INIT")
-        memory_block = True
-        continue
+        elif line == "INIT\n":
+            if memory_block:
+                error("unmatched INIT")
+            memory_block = True
+            continue
 
-    elif line == "END\n":
-        if not memory_block:
-            error("unmatched END")
-        memory_block = False
-        continue
+        elif line == "END\n":
+            if not memory_block:
+                error("unmatched END")
+            memory_block = False
+            continue
 
-    elif memory_block:
-        dest_file.write(line)
-        continue
+        elif memory_block:
+            write_ins(line)
+            continue
 
 
-    #first token
-    elif tokens[0] in macro_ins:
-        if tokens[0] == "REL_JMP":
-            print(hex(memory_addr))
-            dest = tokens[1]
-            reg = tokens[2]
-            cond = tokens[3]
+        #first token
+        elif tokens[0] in macro_ins:
+            if tokens[0] == "REL_JMP":
+                dest = tokens[1]
+                reg = tokens[2]
+                cond = tokens[3]
 
-            #calculate address
-            offset = 0
-            if dest.startswith("0x"):
-                offset = int(dest, 16)
-            else:
-                offset = int(dest)
-            addr_val = memory_addr + offset
-            if addr_val < PROGRAM_START or addr_val > PROGRAM_END:
-                error("invalid jump location: " + hex(addr_val))
-            addr = int_to_hex(addr_val)
-            #MOVI
-            write_ins(parse_ins("MOVI 0x" + addr[2] + addr[3] + " " + reg))
-            #LUI
-            write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
-            #JMP
-            write_ins(parse_ins("JMP " + reg + " " + cond))
+                #calculate address
+                offset = 0
+                if dest.startswith("0x"):
+                    offset = int(dest, 16)
+                else:
+                    offset = int(dest)
+                addr_val = memory_addr + offset
+                if addr_val < PROGRAM_START or addr_val > PROGRAM_END:
+                    error("invalid jump location: " + hex(addr_val))
+                addr = int_to_hex(addr_val)
+                #MOVI
+                write_ins(parse_ins("MOVI 0x" + addr[2] + addr[3] + " " + reg))
+                #LUI
+                write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
+                #JMP
+                write_ins(parse_ins("JMP " + reg + " " + cond))
 
-        elif tokens[0] == "JMP_IMM":
-            dest = tokens[1]
-            reg = tokens[2]
-            cond = tokens[3]
-            if dest.startswith("0x"):
-                dest = int(dest, 16)
-            else:
-                dest = int(dest)
+            elif tokens[0] == "JMP_IMM":
+                dest = tokens[1]
+                reg = tokens[2]
+                cond = tokens[3]
+                if dest.startswith("0x"):
+                    dest = int(dest, 16)
+                else:
+                    dest = int(dest)
 
-            addr = int_to_hex(dest)
-            #MOVI
-            write_ins(parse_ins("MOVI 0x" + addr[2] + addr[3] + " " + reg))
-            #LUI
-            write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
-            #JMP
-            write_ins(parse_ins("JMP " + reg + " " + cond))
-            
-        elif tokens[0] == "NOP":
-            write_ins(parse_ins("OR r0 r0"))
+                addr = int_to_hex(dest)
+                #MOVI
+                write_ins(parse_ins("MOVI 0x" + addr[2] + addr[3] + " " + reg))
+                #LUI
+                write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
+                #JMP
+                write_ins(parse_ins("JMP " + reg + " " + cond))
+            elif tokens[0] == "JAL_IMM":
+                dest = tokens[1]
+                if dest.startswith("0x"):
+                    dest = int(dest, 16)
+                else:
+                    dest = int(dest)
+                reg = tokens[2]
+                cond = tokens[3]
+                link = "r15"
+                if len(tokens) == 5:
+                    link = tokens[4]
 
-    else:
-        write_ins(parse_ins(line))
+                addr = int_to_hex(dest)
+
+                #MOVI
+                write_ins(parse_ins("MOVI 0x" + addr[2] + addr[3] + " " + reg))
+                #LUI
+                write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
+                #JAL
+                write_ins(parse_ins("JAL " + reg + " " + link))
+
+            elif tokens[0] == "MOV_IMM":
+                val = tokens[1]
+                if val.startswith("0x"):
+                    val = int(val, 16)
+                else:
+                    val = int(val)
+
+                hex_val = int_to_hex(val)
+                #MOVI
+                write_ins(parse_ins("MOVI 0x" + hex_val[2] + hex_val[3] + " " + reg))
+                #LUI
+                write_ins(parse_ins("LUI 0x" + hex_val[0] + hex_val[1] + " " + reg))
+                
+                
+            elif tokens[0] == "NOP":
+                write_ins(parse_ins("OR r0 r0"))
+
+        #normal instruction
+        else:
+            write_ins(parse_ins(line))
+    except Exception as exc:
+        error("python exception:")
+        traceback.print_exc()
+        write_ins("----\n")
 
 if memory_block:
     error("unmatched INIT")

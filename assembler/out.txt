@@ -8,7 +8,7 @@ fc00
 4c43
 01b0
 40cf
-dc0f
+dcff
 f80e
 @0100
 0020
@@ -16,8 +16,11 @@ f80e
 0020
 d700
 f701
-4ec7
-dc0a
+4887
+d700
+f701
+4f87
+dc0d
 fc01
 4ecc
 8f43
@@ -25,7 +28,11 @@ fc01
 4f8c
 4a8d
 50fd
-@5000
+dcff
+fcff
+dcff
+fcff
+@300
 123a
 138a
 487e
