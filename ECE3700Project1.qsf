@@ -84,7 +84,7 @@ set_location_assignment PIN_AC25 -to Display[24]
 set_location_assignment PIN_AB28 -to Display[25]
 set_location_assignment PIN_AB25 -to Display[26]
 set_location_assignment PIN_AB22 -to Display[27]
-set_location_assignment PIN_AF14 -to clk
+set_location_assignment PIN_A11 -to clk
 
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
 set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH DatapathTest -section_id eda_simulation
@@ -147,3 +147,13 @@ set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_RO
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_location_assignment PIN_A13 -to rgb[7]
+set_location_assignment PIN_C13 -to rgb[6]
+set_location_assignment PIN_E13 -to rgb[5]
+set_location_assignment PIN_J9 -to rgb[4]
+set_location_assignment PIN_J10 -to rgb[3]
+set_location_assignment PIN_H12 -to rgb[2]
+set_location_assignment PIN_B13 -to rgb[1]
+set_location_assignment PIN_G13 -to rgb[0]
+set_location_assignment PIN_B11 -to hSync
+set_location_assignment PIN_D11 -to vSync
