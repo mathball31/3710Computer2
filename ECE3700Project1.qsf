@@ -157,3 +157,15 @@ set_location_assignment PIN_J14 -to rgb[1]
 set_location_assignment PIN_G15 -to rgb[0]
 set_location_assignment PIN_B12 -to hSync
 set_location_assignment PIN_D11 -to vSync
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to clk
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to hSync
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rgb
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to vSync
