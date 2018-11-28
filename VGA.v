@@ -3,12 +3,19 @@
 module VGA (
 	input clk,
 	output hSync, vSync, bright,
-	output rgb
+	output [7:0] rgb
 	);
 
 	wire [9:0] hCount, vCount;
+	reg slowClk = 1'b0;
 	
-	VGAControl control (.clock(clk), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hCount), .vCount(vCount));
+	
+	always @ ( posedge clk)
+	begin
+		slowClk <= ~slowClk;
+	end
+	
+	VGAControl control (.clock(slowClk), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hCount), .vCount(vCount));
 	
 	BitGen gen (.bright(bright), .pixelData(8'b0000_0000), .hCount(hCount), .vCount(vCount), .rgb(rgb));
 	
