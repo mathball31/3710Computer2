@@ -55,47 +55,40 @@ module VGAControl (
 	// best if counts are the counts of the pixels on the screen
 	// hcount = (0, 639), vcount = (0, 479)
 
-	parameter HVID = 640;			// pixel width 
 	parameter HPULSE = 95;			// sync pulse length
 	parameter HBACK = 60;			// back porch length
+	parameter HVID = 640;			// pixel width 
 	parameter HFRONT = 15;			// front port length
-	parameter HMAX = 785;			// max length of horizontal pulse
+	parameter HMAX = 810;			// max length of horizontal pulse
 	
-	parameter VVID = 480;			// pixel height
 	parameter VPULSE = 63;			// sync pulse
 	parameter VBACK = 1036;			// back porch
+	parameter VVID = 480;			// pixel height
 	parameter VFRONT = 314;			// front porch
-	parameter VMAX = 16485;			// max length for vertical pulse
+	parameter VMAX = 1893;			// max length for vertical pulse
 	
-	reg vBlank, hBlank;
-	wire hReset, hSyncOn, hSyncOff, hOff;
-	wire vReset, vSyncOn, vSyncOff, vOff;
+	wire vBlank, hBlank;
+	wire hReset, hsOn, hsOff;
+	wire vReset, vsOn, vsOff;
 	
 	// hsync, vsync are asserted low - high rest of the time <- active low
-	// use nested if loops or separate always blocks
 	always@ (posedge clock)
 	begin
 		// a different way of using conditionals with a conditional operator!
 		// syntax -> conditional ? true : false
 		
-		// if hReset == 0, hCount = 0; else hCount <= hCount + 1;
+		// if hReset == 1, then hCount = 0; else hCount <= hCount + 1;
 		hCount <= hReset ? 0 : hCount + 1;
-		// statement of how hSync should behave
-		// if hSyncOn == 1, hSync <= (fires). Else, if hSyncOff == 1, don't fire (hSync <= 1)
-		// otherwise, retain it's previous state
-		hSync <= hSyncOn ? 0 : hSyncOff ? 1 : hSync;
-		// if hReset == 1, hBlank == 0. Else if hReset == 0, check if hOff == 1, hBlank == 1
-		// which menas that the beam shouldn't be in use
-		// otherwise retain previous state.
-		hBlank <= hReset ? 0 : hOff ? 1 : hBlank;
+		
+		// hSync should fire when hsOn == 1; be off when hsOff == 1;
+		// otherwise retain its previous state
+		hSync <= hsOn ? 0 : hsOff ? 1 : hSync;
 		
 		
 		// if hReset == 0, if vReset == 0, vCount <= 0, else increment
 		// else just keep vCount as it is -> horizontal beam hasn't reached the end
 		vCount <= hReset ? (vReset ? 0 : vCount + 1) : vCount;
-		// statement of how vSync should behave - almost exactly the same as hSync
-		vSync <= vSyncOn ? 0 : vSyncOff ? 1 : vSync;
-		vBlank <= vReset ? 0 : vOff ? 1 : vBlank;
+		vSync <= vsOn ? 0 : vsOff ? 1 : vSync;
 		
 		// bright can be asserted high or low - used by BitGen to say whether or not to draw a pixel
 		// this is enabled when the position is in the active area of the screen
@@ -104,22 +97,25 @@ module VGAControl (
 	end
 	
 	
-	assign hReset = (hCount == (HMAX - 1));		// MAX - 1 because we start counting from 0
-	// tells hsync when to fire, happens after the display has been shown, and front porch happens
-	assign hSyncOn = (hCount == ((HVID + HFRONT) - 1));
-	// turn off hsync
-	assign hSyncOff = (hCount == (HPULSE - 1));
-	// when the beam shouldn't be on for the horizontal sync, which is during pulse, back porch, and front porch
-	assign hOff = (hCount == ((HPULSE + HBACK) - 1) || (hCount == ((HVID + HFRONT) - 1)));
+	// if hCount == MAX, hReset = 1; else, hReset = 0;
+	// as soon as hCount hits MAX, then it has reached the end of the row, and is time to fire the rest
+	assign hReset = (hCount == HMAX);
+	
+	// hsOn happens after the front porch has happened, which is the same as the max of the row
+	assign hsOn = (hCount == HMAX);
+	
+	// after the pulse width, as it is the length of time it takes for the sync pulse to go through
+	assign hsOff = (hCount == HPULSE);
+	
+	// turn off the beam when the beam is in either the front or back porches or pulse
+	assign hBlank = (hCount > (HMAX - HFRONT) || hCount < (HPULSE + HBACK));
 	
 	
-	assign vReset = (vCount == (VMAX - 1));
-	
-	// telss vSync when to fire, happens after display has been shown and front porch happens
-	assign vSyncOn = hReset & (vCount == ((VVID + VFRONT) - 1));
-	assign vSyncOff = hReset & (vCount == (HPULSE - 1));
-	assign vOff = hReset & (vCount == ((VPULSE + VBACK) - 1) || (vCount == ((VVID + VFRONT) - 1)));
-	
+	// vSync is a lot like hSync, except it relies on hSync
+	assign vReset = (vCount == VMAX);
+	assign vsON = hReset & (vCount == VMAX);
+	assign vsOff = hReset & (vCount == VPULSE);
+	assign vBlank = hReset & (vCount > (VMAX - VFRONT) || vCount < (VPULSE + VBACK));	
 endmodule
 
 /*
