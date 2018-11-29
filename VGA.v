@@ -2,14 +2,15 @@
 /* Driver module of the VGA */
 module VGA (
 	input clk,
-	output hSync, vSync, bright,
+	output hSync, vSync,
 	output [7:0] rgb
 	);
 
 	wire [9:0] hCount, vCount;
-	reg slowClk = 1'b0;
+	wire bright;
+	reg slowClk;
 	
-	always @ ( posedge clk)
+	always @ (posedge clk)
 	begin
 		slowClk <= ~slowClk;
 	end
@@ -113,7 +114,7 @@ module VGAControl (
 	
 	// vSync is a lot like hSync, except it relies on hSync
 	assign vReset = (vCount == VMAX);
-	assign vsON = hReset & (vCount == VMAX);
+	assign vsOn = hReset & (vCount == VMAX);
 	assign vsOff = hReset & (vCount == VPULSE);
 	assign vBlank = hReset & (vCount > (VMAX - VFRONT) || vCount < (VPULSE + VBACK));	
 endmodule
