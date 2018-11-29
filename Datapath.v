@@ -47,7 +47,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;	
 	
-	wire [11:0] button_data;
+	wire [5:0] button_data;
 	
 	
 	RegBank regFile(clk, !reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
@@ -62,7 +62,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
-	SNES_Control snes_control(clk, serial_data, snes_clk, data_latch, button_data);
+	SNES_Wrapper snes_wrapper(clk, serial_data, snes_clk, data_latch, button_data);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
 	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
