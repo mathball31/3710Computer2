@@ -5,11 +5,14 @@ module DatapathTest;
 	
 	reg clk = 0;
 	reg reset = 1;
+	reg serial_data = 1;
 	//wire [4:0] flags;
 	//wire [15:0] alu_bus;
-	wire [27:0] Display;
+	wire snes_clk;
+	wire data_latch;
+	wire [27:0] display;
 	
-	Datapath dp(clk, reset, Display);
+	Datapath dp(clk, reset, serial_data, snes_clk, data_latch, display);
 	
 	initial
 	begin

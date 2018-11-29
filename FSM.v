@@ -1,34 +1,38 @@
 
 
-module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+module FSM(clk, reset, mem_in, flags, pc_ins, snes_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en, pc_ld);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
 	input [9:0] pc_ins;
+	input [11:0] snes_data;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
 	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en, pc_ld;
 	
 	wire [15:0] mux_out;
-	reg [3:0] state;
+	reg [4:0] state;
 	reg [15:0] instruction;
 	
-	parameter RESET		= 4'b0000;
-	parameter FETCH_1 	= 4'b0001;
-	parameter FETCH_2		= 4'b0010;
-	parameter R_TYPE		= 4'b0011;
-	parameter STORE_1		= 4'b0100;
-	parameter STORE_2		= 4'b0101;
-	parameter LOAD_1		= 4'b0110;
-	parameter LOAD_2		= 4'b0111;
-	parameter JUMP_1		= 4'b1000;
-	parameter JUMP_2		= 4'b1001;
-	parameter JAL_1		= 4'b1010;
-	parameter JAL_2		= 4'b1011;
-	parameter JAL_3		= 4'b1100;
-	parameter STOP			= 4'b1101;
+	parameter RESET		= 5'b00000;
+	parameter FETCH_1 	= 5'b00001;
+	parameter FETCH_2		= 5'b00010;
+	parameter R_TYPE		= 5'b00011;
+	parameter STORE_1		= 5'b00100;
+	parameter STORE_2		= 5'b00101;
+	parameter LOAD_1		= 5'b00110;
+	parameter LOAD_2		= 5'b00111;
+	parameter JUMP_1		= 5'b01000;
+	parameter JUMP_2		= 5'b01001;
+	parameter JAL_1		= 5'b01010;
+	parameter JAL_2		= 5'b01011;
+	parameter JAL_3		= 5'b01100;
+	parameter SNES_1		= 5'b01101;
+	parameter SNES_2		= 5'b01110;
+	parameter SNES_3		= 5'b01111;
+	parameter STOP			= 5'b10000;
 	
 	parameter EQUAL 		= 4'b0000; 	// Equal 						Z=1
 	parameter NOT_EQ 		= 4'b0001; 	// Not Equal 					Z=0
@@ -78,7 +82,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				pc_sel 		= 1'b1;
 				mem_w_en_a 	= 1'b0;
 				mem_w_en_b 	= 1'b0;
-				reg_en 		= 16'bx;
+				reg_en 		= 16'b0;
 				flag_en		= 1'b0;
 				pc_en 		= 1'b0;
 				pc_ld			= 1'b0;
@@ -97,14 +101,14 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 			// 1
 			FETCH_1:
 			begin			
-				opcode 		= 16'bx;
+				opcode 		= 16'b0;
 				mux_A_sel 	= 4'bx;
 				mux_B_sel	= 4'bx;
 				alu_sel 		= 1'b1;
 				pc_sel 		= 1'b1;
 				mem_w_en_a 	= 1'b0;
 				mem_w_en_b 	= 1'b0;
-				reg_en 		= 16'bx;
+				reg_en 		= 16'b0;
 				flag_en 		= 1'b0;
 				pc_en 		= 1'b1;
 				pc_ld			= 1'b0;
@@ -146,6 +150,10 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 						4'b1100:
 						begin
 							state = JUMP_1;
+						end
+						4'b1111:
+						begin
+							state = SNES_1;
 						end
 					endcase
 				end
@@ -308,7 +316,36 @@ module FSM(clk, reset, mem_in, flags, pc_ins, opcode, mux_A_sel, mux_B_sel, alu_
 				state = R_TYPE;
 			end
 			
-			// 12
+			// 13
+			SNES_1:
+			begin
+				// TODO select snes_data based on insruction[3:0]
+				// MOVI button_data[7:0] r[instruction[11:8]]
+				instruction = {4'b1101, instruction[11:8], snes_data[7:0]};	
+				state = SNES_2;
+			end
+			
+			// 14
+			SNES_2:
+			begin
+				opcode 		= instruction;
+				mux_A_sel 	= instruction[11:8];	// Destination
+				mux_B_sel 	= instruction[3:0];  	// Source
+				reg_en 		= mux_out;	
+				state = SNES_3;
+			end
+			
+			// 15
+			SNES_3:
+			begin
+				// LUI button_data[11:8] r[instruction[11:8]]
+				instruction = {4'b1111, instruction[11:8], 4'b0, snes_data[11:8]};
+				state = R_TYPE;
+			end
+			
+			
+			
+			// 16
 			STOP:
 			begin
 				opcode 		= 16'bx;

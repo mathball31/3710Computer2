@@ -1,11 +1,9 @@
 // FSM/Datapath Test Program 2:  Simple Register to Register
  
- // 0:  0101 - add immediate 0000 - register 0 - value 5
- // 16'b0101_0000_0000_0101;
- 5005
+// MOVI 5 r4
+d405
  
- // 3:  Move r0 -> r4
- // 16'b0000_0100_1101_0000;
- 04D0
+// MOV r4 r0
+00D4
  
- // Result should be:  r4 = 5 or 0x5
+ // Result should be:  r0 = 5 or 0x5

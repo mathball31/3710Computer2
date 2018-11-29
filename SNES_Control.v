@@ -1,6 +1,6 @@
 // SNES Control
 
-module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data, testLED);
+module SNES_Control(clk, reset, serial_data, snes_clk, data_latch, button_data);
 	
 		// Place holder for the number of clock ticks that corresponds to a 
 	// data latch signal being sent out every 16.67 ms (about 60 Hz)
@@ -14,25 +14,16 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data, testLED
 	// Corresponds to about 14 (14.4) clock ticks when clock speed is 1.2 MHz
 	parameter TWELVEu	= 16'b0000_0000_0000_1110;
 	
-	//parameter TEST = 12'b0010_1000_0000;
-	//parameter TEST = 12'b0000_0000_0001;
-	parameter TEST = 12'b0000_0100_0000;
-
 	
-	input clk, serial_data;
+	input clk, reset, serial_data;
 	output reg snes_clk, data_latch;
 	output reg [11:0] button_data;
-	output reg testLED = 1'b0;
 	
 	reg [15:0] counter = PULSE;
 	reg [15:0] temp_counter;
 	reg [3:0] button_counter;
 	reg latch_complete = 1'b0;
-	
-	reg [11:0] testCounter = TEST;
-	
-	
-	
+		
 
 	
 	
@@ -53,6 +44,17 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data, testLED
 	
 	always @(posedge clk)
 	begin
+		if (reset)
+		begin
+			counter = PULSE;
+			temp_counter 	= counter;
+			button_counter = 4'b1111;
+			latch_complete = 1'b0;
+			snes_clk 		= 1'b1;
+			data_latch 		= 1'b0;
+			button_data 	= 12'b0;
+		end
+		
 		if (counter == PULSE)
 		begin
 			counter 			= 16'b0;
@@ -63,13 +65,6 @@ module SNES_Control(clk, serial_data, snes_clk, data_latch, button_data, testLED
 			snes_clk 		= 1'b1;
 			data_latch 		= 1'b1;
 			
-			if (testCounter == TEST)
-			begin
-				testLED = ~testLED;
-				testCounter = 12'b0;
-			end
-			
-			testCounter = testCounter + 12'b0000_0000_0001;
 		end
 		
 		if ((counter - temp_counter) == TWELVEu)

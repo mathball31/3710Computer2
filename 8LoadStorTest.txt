@@ -1,16 +1,16 @@
 // FSM/Datapath Test Program 8:  Simple Load/Stor
 
-// 0:  Add immediate 11 into r0
-// 16'b0101_0000_0000_1011;
-500B
+// 0:  Add immediate 11 into r4
+// 16'b0101_0100_0000_1011;
+540B
 
 // 1:  Add immediate 240 into r1 for address value
 // 16'b0101_0001_1111_0000
 51F0
 
-// 2:  Store the value from r0 into memory address r1
-// 16'b0100_0000_0100_0001
-4041
+// 2:  Store the value from r4 into memory address r1
+// 16'b0100_0100_0100_0001
+4441
 
 // 3:  Load the value from memory address r1 into r2
 // 16'b0100_0010_0000_0001

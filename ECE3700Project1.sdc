@@ -19,7 +19,7 @@
 ## PROGRAM "Quartus Prime"
 ## VERSION "Version 18.0.0 Build 614 04/24/2018 SJ Lite Edition"
 
-## DATE    "Thu Nov 29 09:41:09 2018"
+## DATE    "Thu Nov 29 11:28:34 2018"
 
 ##
 ## DEVICE  "5CSEMA5F31C6"
@@ -38,7 +38,6 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {clk_1200} -period 1.000 -waveform { 0.000 0.500 } [get_registers {clk_1200}]
 create_clock -name {clk} -period 1.000 -waveform { 0.000 0.500 } [get_ports {clk}]
 
 
@@ -62,18 +61,10 @@ set_clock_uncertainty -rise_from [get_clocks {clk}] -rise_to [get_clocks {clk}] 
 set_clock_uncertainty -rise_from [get_clocks {clk}] -rise_to [get_clocks {clk}] -hold 0.270  
 set_clock_uncertainty -rise_from [get_clocks {clk}] -fall_to [get_clocks {clk}] -setup 0.310  
 set_clock_uncertainty -rise_from [get_clocks {clk}] -fall_to [get_clocks {clk}] -hold 0.270  
-set_clock_uncertainty -rise_from [get_clocks {clk}] -rise_to [get_clocks {clk_1200}]  0.350  
-set_clock_uncertainty -rise_from [get_clocks {clk}] -fall_to [get_clocks {clk_1200}]  0.350  
 set_clock_uncertainty -fall_from [get_clocks {clk}] -rise_to [get_clocks {clk}] -setup 0.310  
 set_clock_uncertainty -fall_from [get_clocks {clk}] -rise_to [get_clocks {clk}] -hold 0.270  
 set_clock_uncertainty -fall_from [get_clocks {clk}] -fall_to [get_clocks {clk}] -setup 0.310  
 set_clock_uncertainty -fall_from [get_clocks {clk}] -fall_to [get_clocks {clk}] -hold 0.270  
-set_clock_uncertainty -fall_from [get_clocks {clk}] -rise_to [get_clocks {clk_1200}]  0.350  
-set_clock_uncertainty -fall_from [get_clocks {clk}] -fall_to [get_clocks {clk_1200}]  0.350  
-set_clock_uncertainty -rise_from [get_clocks {clk_1200}] -rise_to [get_clocks {clk_1200}]  0.380  
-set_clock_uncertainty -rise_from [get_clocks {clk_1200}] -fall_to [get_clocks {clk_1200}]  0.380  
-set_clock_uncertainty -fall_from [get_clocks {clk_1200}] -rise_to [get_clocks {clk_1200}]  0.380  
-set_clock_uncertainty -fall_from [get_clocks {clk_1200}] -fall_to [get_clocks {clk_1200}]  0.380  
 
 
 #**************************************************************

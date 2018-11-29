@@ -143,11 +143,13 @@ shift_ins = {
     "ASH":      "a"
 }
 
+#TODO implement SNES
 jmp_ld_str_ins = {
     "LOAD": "0",
     "STOR": "4",
     "JAL":  "8",
-    "JMP":  "c"
+    "JMP":  "c",
+    "SNES": "f"
 }
 
 jmp_cond = {
@@ -254,6 +256,9 @@ def parse_ins(line):
         elif tokens[0] == "JAL" and len(tokens) == 2:
             #link
             code[1] = "f"
+        #TODO
+        elif tokens[0] == "SNES":
+            print("SNES")
         else:
             #dest
             code[1] = reg_to_hex(tokens[2])
@@ -383,6 +388,7 @@ for line in source_file:
                 write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
                 #JMP
                 write_ins(parse_ins("JMP " + reg + " " + cond))
+
             elif tokens[0] == "JAL_IMM":
                 dest = tokens[1]
                 if dest.startswith("0x"):

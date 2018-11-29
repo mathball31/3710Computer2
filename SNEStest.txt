@@ -1,0 +1,6 @@
+//MOVI 1 r1
+d101
+//SNES 0 r0
+40f0
+//JMP r1 UC
+4ec1

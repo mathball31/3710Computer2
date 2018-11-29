@@ -95,5 +95,11 @@
 // 16'b0000_1111_0101_1101;
 0F5D
 
-// Result should be:  r15 = D'1597 or 0x63D
+// 31 Move r15 -> r0
+00DF
+
+// 32: stop
+0000
+
+// Result should be:  r0 = D'1597 or 0x63D
  

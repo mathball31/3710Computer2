@@ -21,12 +21,12 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
+module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	
 	input clk, reset, serial_data;
 	wire [15:0] alu_bus;
 	output snes_clk, data_latch;
-	output [27:0] Display;
+	output [27:0] display;
 	
 	wire [4:0] flags_in, flags_out;
 	
@@ -47,7 +47,9 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;	
 	
-	wire [5:0] button_data;
+	wire [11:0] button_data;
+	wire clk_1200;
+	
 	
 	
 	RegBank regFile(clk, !reset, reg_en, reg_input, r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
@@ -62,22 +64,45 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, Display);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
-	SNES_Wrapper snes_wrapper(clk, serial_data, snes_clk, data_latch, button_data);
+	Clock_1200kHz clock_1200kHz(clk, !reset, clk_1200);
+	
+	SNES_Control snes_control(clk_1200, !reset, serial_data, snes_clk, data_latch, button_data);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
 	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, !reset, mem_out_a, flags_out, pc_out, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	FSM fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
-	hexTo7Seg seg0(r0[15:12], Display[27:21]);
-	hexTo7Seg seg1(r0[11:8], Display[20:14]);
-	hexTo7Seg seg2(r0[7:4], Display[13:7]);
-	hexTo7Seg seg3(r0[3:0], Display[6:0]);	
+	hexTo7Seg seg0(r0[15:12], display[27:21]);
+	hexTo7Seg seg1(r0[11:8], display[20:14]);
+	hexTo7Seg seg2(r0[7:4], display[13:7]);
+	hexTo7Seg seg3(r0[3:0], display[6:0]);	
 endmodule
 
 
 
+module Clock_1200kHz(clk, reset, clk_1200);
+	input clk, reset;
+	output reg clk_1200;
+	reg [5:0] snes_clk_counter;
+	
+	always @(posedge clk)
+	begin
+		if (reset)
+		begin
+			clk_1200 = 0;
+			snes_clk_counter = 0;
+		end
+		snes_clk_counter = snes_clk_counter + 6'b000001;
+		if (snes_clk_counter == 21)
+		begin
+			clk_1200 = ~clk_1200;
+			snes_clk_counter = 0;
+		end
+	end
+
+endmodule
 
 /*
 This module selects an output from an register depending on regNum
