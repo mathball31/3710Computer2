@@ -3,14 +3,20 @@
 module VGA (
 	input clk,
 	output hSync, vSync, bright,
-	output rgb
+	output [7:0] rgb
 	);
 
 	wire [9:0] hCount, vCount;
+	reg slowClk = 1'b0;
 	
-	VGAControl control (.clock(clk), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hCount), .vCount(vCount));
+	always @ ( posedge clk)
+	begin
+		slowClk <= ~slowClk;
+	end
 	
-	BitGen gen (.bright(bright), .pixelData(8'b0000_0000), .hCount(hCount), .vCount(vCount), .rgb(rgb));
+	VGAControl control (slowClk, hSync, vSync, bright, hCount, vCount);
+	
+	BitGen gen (bright, 8'b0000_0000, hCount, vCount, rgb);
 	
 endmodule
 
@@ -169,7 +175,7 @@ module BitGen (
 	 *
 	 * Use 16 pixels square for each block.  This results in a grid of 40 x 30.
 	 * the glyphs will be stored somewhere in memory:  They should be:
-	 *		* The letters A - Z plus a few special characters (dash)
+	 *		* The letters A - Z plus a few special characters (dash, colon, exlamation point)
 	 *    * Green glyphs for green snake
 	 *    * Blue glyphs for blue snake
 	 *    * Red glyphs for food
@@ -184,5 +190,18 @@ module BitGen (
 	 *
 	 * Display the correct pixel of the glyph
 	 **/
+	 
+	 /*pseudo code for glyphs
+	 
+	 hGlyphCount = hCount[9:4];
+	 hInnerGlyphCount = hCount[3:0];
+	 
+	 vGlyphCount = vCount[9:4];
+	 vInnerGlyphCount = vCount[3:0];
+	 
+	 GetGlyphFromWorld
+	 
+	 */
+	 
 
 endmodule
