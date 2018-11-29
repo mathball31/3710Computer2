@@ -1,10 +1,10 @@
 
 /* Driver module of the VGA */
-module VGA (
-	input clk,
-	output hSync, vSync,
-	output [7:0] rgb
-	);
+module VGA (clk, clear, hSync, vSync, rgb);
+	
+	input clk, clear;
+	output hSync, vSync;
+	output [7:0] rgb;
 
 	wire [9:0] hCount, vCount;
 	wire bright;
@@ -15,7 +15,7 @@ module VGA (
 		slowClk <= ~slowClk;
 	end
 	
-	VGAControl control (slowClk, hSync, vSync, bright, hCount, vCount);
+	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
 	
 	BitGen gen (bright, 8'b0000_0000, hCount, vCount, rgb);
 	
@@ -47,10 +47,11 @@ endmodule
 	A = sync pulse length		B = back porch		C = active video time		D = front porch		F = total frame time
 	To find the clock cycles, multiply the lines with the total scanline time of the HSync
 */
-module VGAControl (
-	input clock,
-	output reg hSync, vSync, bright,
-	output reg [9:0] hCount, vCount);
+module VGAControl (clock, clear, hSync, vSync, bright, hCount, vCount);
+	
+	input clock, clear;
+	output reg hSync, vSync, bright;
+	output reg [9:0] hCount, vCount;
 	
 	//	hcount, vcount are used by BitGen to keep track of where you are on the screen
 	// best if counts are the counts of the pixels on the screen
@@ -79,7 +80,7 @@ module VGAControl (
 		// syntax -> conditional ? true : false
 		
 		// if hReset == 1, then hCount = 0; else hCount <= hCount + 1;
-		hCount <= hReset ? 0 : hCount + 1;
+		hCount <= hReset ? 10'b0 : hCount + 1'b1;
 		
 		// hSync should fire when hsOn == 1; be off when hsOff == 1;
 		// otherwise retain its previous state
@@ -88,7 +89,7 @@ module VGAControl (
 		
 		// if hReset == 0, if vReset == 0, vCount <= 0, else increment
 		// else just keep vCount as it is -> horizontal beam hasn't reached the end
-		vCount <= hReset ? (vReset ? 0 : vCount + 1) : vCount;
+		vCount <= hReset ? (vReset ? 10'b0 : vCount + 1'b1) : vCount;
 		vSync <= vsOn ? 0 : vsOff ? 1 : vSync;
 		
 		// bright can be asserted high or low - used by BitGen to say whether or not to draw a pixel
@@ -100,7 +101,7 @@ module VGAControl (
 	
 	// if hCount == MAX, hReset = 1; else, hReset = 0;
 	// as soon as hCount hits MAX, then it has reached the end of the row, and is time to fire the rest
-	assign hReset = (hCount == HMAX);
+	assign hReset = (hCount == HMAX) || clear;
 	
 	// hsOn happens after the front porch has happened, which is the same as the max of the row
 	assign hsOn = (hCount == HMAX);
@@ -113,7 +114,7 @@ module VGAControl (
 	
 	
 	// vSync is a lot like hSync, except it relies on hSync
-	assign vReset = (vCount == VMAX);
+	assign vReset = (vCount == VMAX) || clear;
 	assign vsOn = hReset & (vCount == VMAX);
 	assign vsOff = hReset & (vCount == VPULSE);
 	assign vBlank = hReset & (vCount > (VMAX - VFRONT) || vCount < (VPULSE + VBACK));	
@@ -125,11 +126,12 @@ endmodule
 	
 	Glyph graphics - break the screen into chunks
 */
-module BitGen (
-	input bright,
-	input [7:0] pixelData,
-	input [9:0] hCount, vCount,
-	output reg [7:0] rgb);
+module BitGen (bright, pixelData, hCount, vCount, rgb);
+	
+	input bright;
+	input [7:0] pixelData;
+	input [9:0] hCount, vCount;
+	output reg [7:0] rgb;
 	
 	// First just dipslay vertical bars of each color:
 	parameter BLACK = 8'b000_000_00;
@@ -146,22 +148,28 @@ module BitGen (
 	// there are 640 pixels in a row, and 480 in a column
 	always@(*) // paint the bars
 	begin
-		if ((hCount >= 0) && (hCount <=80) || ~bright) 
-			rgb = BLACK; // force black if not bright 
-		else if ((hCount >= 81) && (hCount <= 160))
-			rgb = BLUE;
-		else if ((hCount >= 161) && (hCount <=240))
-			rgb = GREEN;
-		else if ((hCount >= 241) && (hCount <= 320))
-			rgb = CYAN;
-		else if ((hCount >= 321) && (hCount <= 400))
-			rgb = RED;
-		else if ((hCount >= 401) && (hCount <= 480))
-			rgb = MAGENTA;
-		else if ((hCount >= 481) && (hCount <= 560))
-			rgb = YELLOW;
-		else if ((hCount >= 561) && (hCount <= 640))
-			rgb = WHITE;
+		if (bright)
+		begin
+			if ((hCount >= 155) && (hCount <=235) || ~bright) 
+				rgb = BLACK; 
+			else if ((hCount >= 236) && (hCount <= 315))
+				rgb = BLUE;
+			else if ((hCount >= 316) && (hCount <= 395))
+				rgb = GREEN;
+			else if ((hCount >= 396) && (hCount <= 475))
+				rgb = CYAN;
+			else if ((hCount >= 476) && (hCount <= 555))
+				rgb = RED;
+			else if ((hCount >= 556) && (hCount <= 635))
+				rgb = MAGENTA;
+			else if ((hCount >= 636) && (hCount <= 715))
+				rgb = YELLOW;
+			else if ((hCount >= 716) && (hCount <= 795))
+				rgb = WHITE;
+			else
+				rgb = BLACK;
+		end
+		
 		else
 			rgb = BLACK;
 	end
