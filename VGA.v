@@ -77,16 +77,16 @@ module VGAControl (clock, clear, hSync, vSync, bright, hCount, vCount);
 	always@ (posedge clock)
 	begin
 	
-//		if(clear)
-//		begin
-//			hCount <= 10'b0;
-//			vCount <= 10'b0;
-//		end
-//		else
-//		begin
-//			hCount <= hCount;
-//			vCount <= vCount;
-//		end
+		if(!clear)
+		begin
+			hCount <= 10'b0;
+			vCount <= 10'b0;
+		end
+		else
+		begin
+			hCount <= hCount;
+			vCount <= vCount;
+		end
 	
 		if(hCount == HMAX)
 		begin
