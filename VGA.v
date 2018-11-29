@@ -155,7 +155,7 @@ module BitGen (bright, pixelData, hCount, vCount, rgb);
 	begin
 		if (bright)
 		begin
-			if ((hCount >= 155) && (hCount <=235) || ~bright) 
+			if ((hCount >= 155) && (hCount <=235)) 
 				rgb = BLACK; 
 			else if ((hCount >= 236) && (hCount <= 315))
 				rgb = BLUE;
