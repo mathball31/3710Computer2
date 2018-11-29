@@ -1,1 +1,0 @@
-Clock_1200kHz_sim/Clock_1200kHz.vo

@@ -1,8 +1,8 @@
 /// Wrapper to give SNES_Control a slower clock
 
-module SNES_Wrapper(clk, reset, serial_data, snes_clk, data_latch, output_data);
+module SNES_Wrapper(clk, reset, serial_data, snes_clk, data_latch, output_data, testLED);
 	input clk, reset, serial_data;
-	output snes_clk, data_latch;
+	output snes_clk, data_latch, testLED;
 	output reg [5:0] output_data;
 	
 	parameter B = 0;
@@ -23,10 +23,24 @@ module SNES_Wrapper(clk, reset, serial_data, snes_clk, data_latch, output_data);
 		output_data[0] = button_data[B];
 	end
 	
-	wire clk_1200, locked;
+	//wire clk_1200, locked;
 	
-	Clock_1200kHz clock_1200kHz(clk, reset, clk_1200, locked);
+	//Clock_1200kHz clock_1200kHz(clk, reset, clk_1200, locked);
 	
-	SNES_Control snes_control(clk_1200, serial_data, snes_clk, data_latch, button_data);
+	reg clk_1200 = 0;
+	
+	reg [5:0] counter = 0;
+	
+	always @(posedge clk)
+	begin
+		counter = counter + 6'b000001;
+		if (counter == 21)
+		begin
+			clk_1200 = ~clk_1200;
+			counter = 0;
+		end
+	end
+	
+	SNES_Control snes_control(clk_1200, serial_data, snes_clk, data_latch, button_data, testLED);
 
 endmodule
