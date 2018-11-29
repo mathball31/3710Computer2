@@ -1,15 +1,15 @@
 
 /* Driver module of the VGA */
-module VGA (clk, clear, hSync, vSync, bright, rgb);
+module VGA (clk, clear, hSync, vSync, bright, rgb, slowClk);
 	
 	input clk, clear;
 	output hSync, vSync;
 	output [7:0] rgb;
+	output bright;
+	output reg slowClk = 0;
 
 	wire [9:0] hCount;
 	wire [9:0] vCount;
-	output bright;
-	reg slowClk = 0;
 	
 	always @ (posedge clk)
 	begin
@@ -154,30 +154,29 @@ module BitGen (bright, pixelData, hCount, vCount, rgb);
 	always@(*) // paint the bars
 	begin
 		if (bright)
-		rgb <= 8'b11100000;
-//		begin
-//			if ((hCount >= 155) && (hCount <=235) || ~bright) 
-//				rgb = BLACK; 
-//			else if ((hCount >= 236) && (hCount <= 315))
-//				rgb = BLUE;
-//			else if ((hCount >= 316) && (hCount <= 395))
-//				rgb = GREEN;
-//			else if ((hCount >= 396) && (hCount <= 475))
-//				rgb = CYAN;
-//			else if ((hCount >= 476) && (hCount <= 555))
-//				rgb = RED;
-//			else if ((hCount >= 556) && (hCount <= 635))
-//				rgb = MAGENTA;
-//			else if ((hCount >= 636) && (hCount <= 715))
-//				rgb = YELLOW;
-//			else if ((hCount >= 716) && (hCount <= 795))
-//				rgb = WHITE;
-//			else
-//				rgb = BLACK;
-//		end
-//		
-//		else
-//			rgb = BLACK;
+		begin
+			if ((hCount >= 155) && (hCount <=235) || ~bright) 
+				rgb = BLACK; 
+			else if ((hCount >= 236) && (hCount <= 315))
+				rgb = BLUE;
+			else if ((hCount >= 316) && (hCount <= 395))
+				rgb = GREEN;
+			else if ((hCount >= 396) && (hCount <= 475))
+				rgb = CYAN;
+			else if ((hCount >= 476) && (hCount <= 555))
+				rgb = RED;
+			else if ((hCount >= 556) && (hCount <= 635))
+				rgb = MAGENTA;
+			else if ((hCount >= 636) && (hCount <= 715))
+				rgb = YELLOW;
+			else if ((hCount >= 716) && (hCount <= 795))
+				rgb = WHITE;
+			else
+				rgb = BLACK;
+		end
+		
+		else
+			rgb = 8'b00000000;
 	end
 	
 	/** glyph number is hCount and vCount minus the low three bits
