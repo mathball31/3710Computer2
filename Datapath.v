@@ -22,6 +22,7 @@
 This module handles the interactions between the ALU and register file.
 */
 module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
+	parameter ADDR_WIDTH = 12;
 	
 	input clk, reset, serial_data;
 	wire [15:0] alu_bus;
@@ -41,9 +42,9 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel, flag_en, alu_sel, pc_ld;  // Output from FSM
 	wire [3:0] mux_A_sel, mux_B_sel;
 	wire [15:0] data_b; 
-	wire [9:0] addr_b; 
-	wire [9:0] pc_out;
-	wire [9:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[9:0];	
+	wire [ADDR_WIDTH-1:0] addr_b; 
+	wire [ADDR_WIDTH-1:0] pc_out;
+	wire [ADDR_WIDTH-1:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[ADDR_WIDTH-1:0];	
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;	
 	
@@ -60,7 +61,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	
 	ALU alu(mux_A_out, mux_B_out, opcode, flags_out[3], flags_in, alu_bus);
 	
-	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[9:0], pc_out);
+	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[ADDR_WIDTH-1:0], pc_out);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
@@ -69,9 +70,9 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	SNES_Control snes_control(clk_1200, !reset, serial_data, snes_clk, data_latch, button_data);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
-	Memory mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
+	Memory #(.DATA_WIDTH(16), .ADDR_WIDTH(ADDR_WIDTH)) mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
-	FSM fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
 	hexTo7Seg seg0(r0[15:12], display[27:21]);
@@ -140,10 +141,10 @@ module RegMux(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r
 endmodule
 
 
-module ProgramCounter(clk, reset, pc_en, pc_ld, pc_in, pc_out);
+module ProgramCounter#(ADDR_WIDTH=12)(clk, reset, pc_en, pc_ld, pc_in, pc_out);
 	input clk, reset, pc_en, pc_ld;
-	input [9:0] pc_in;
-	output reg [9:0] pc_out;
+	input [ADDR_WIDTH-1:0] pc_in;
+	output reg [ADDR_WIDTH-1:0] pc_out;
 	
 	always @ (posedge clk)
 	begin

@@ -2,7 +2,7 @@
 // True Dual Port RAM with single clock
 
 module Memory
-#(parameter DATA_WIDTH=16, parameter ADDR_WIDTH=10)
+#(parameter DATA_WIDTH=16, parameter ADDR_WIDTH=12)
 (clk, we_a, we_b, data_a, data_b, addr_a, addr_b, q_a, q_b);
 
 	input [(DATA_WIDTH-1):0] data_a, data_b;
@@ -16,7 +16,7 @@ module Memory
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
-		$readmemh("C:/Users/dirkl/3710Computer2/SNEStest.txt", ram);
+		$readmemh("C:/Users/dirkl/3710Computer2/JALtest.txt", ram);
 		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/9LoadStorComplexTest.txt", ram);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
 	end

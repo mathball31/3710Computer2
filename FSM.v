@@ -1,12 +1,12 @@
 
 
-module FSM(clk, reset, mem_in, flags, pc_ins, snes_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en, pc_ld);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
-	input [9:0] pc_ins;
+	input [ADDR_WIDTH-1:0] pc_ins;
 	input [11:0] snes_data;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
@@ -312,7 +312,7 @@ module FSM(clk, reset, mem_in, flags, pc_ins, snes_data, opcode, mux_A_sel, mux_
 			begin
 				// set high byte of register to high byte of pc
 				// LUI pc_ins[9:8] r[instruction[11:8]]
-				instruction = {4'b1111, instruction[11:8], 6'b0, pc_ins[9:8]};
+				instruction = {4'b1111, instruction[11:8], {(16-ADDR_WIDTH){1'b0}}, pc_ins[ADDR_WIDTH-1:8]};
 				state = R_TYPE;
 			end
 			
