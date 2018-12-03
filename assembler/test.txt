@@ -1,11 +1,15 @@
+SNES 0 r5
+SNES 1 r8
+@100
 REL_JMP 4 r12 UC
 ADDI 5 r0
 SUBI 6 r1
+@100
 ADD r0 r1
 LOAD r4 r6
 STOR r3 r12
 CMP r0 r1
-JMP r15 EQ
+    JMP r15 EQ
 MOVI 255 r12
 // //aelfiaje
 
@@ -35,7 +39,7 @@ MOV_IMM 65535 r4
 //memory
 @300
 INIT
-123a
-138a
-487e
+    123a
+    138a
+    487e
 END

@@ -15,6 +15,8 @@ Usage:
 If there is any output except "name of source file" and "name of dest f
 
 Commands take the following possible forms:
+    COMMAND         //Additional info
+        EXAMPLE
     IMM val dst     //val must fit in a single byte. can be signed or unsigned
         ADDI 100 r0
         CMPI -45 r5
@@ -31,6 +33,8 @@ Commands take the following possible forms:
         JMP r1 EQ
     SHIFTI val dst  //val must fit in 4 bits. Is unsigned
         LLSHI 4 r8
+    SNES cont dst   //cont must be '0' or '1'
+        SNES 0 r3
 
     INIT            //starts memory block must be paired with END
     1234            // inside of memory block, data is copied over directly with 
@@ -253,19 +257,26 @@ def parse_ins(line):
         if tokens[0] == "JMP":
             #cond
             code[1] = jmp_cond[tokens[2]]
+            #src
+            code[3] = reg_to_hex(tokens[1])
         elif tokens[0] == "JAL" and len(tokens) == 2:
             #link
             code[1] = "f"
+            #src
+            code[3] = reg_to_hex(tokens[1])
         #TODO
         elif tokens[0] == "SNES":
-            print("SNES")
+            code[1] = reg_to_hex(tokens[2])
+            if tokens[1] != "0" and tokens[1] != "1":
+                error("invalid snes controller: " + tokens[1])
+            code[3] = tokens[1]
         else:
             #dest
             code[1] = reg_to_hex(tokens[2])
+            #src
+            code[3] = reg_to_hex(tokens[1])
         #ins low
         code[2] = jmp_ld_str_ins[tokens[0]]
-        #src
-        code[3] = reg_to_hex(tokens[1])
 
     elif tokens[0] in imm_ins:
         code[0] = imm_ins[tokens[0]]
