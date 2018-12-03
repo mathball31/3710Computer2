@@ -57,7 +57,7 @@ helpful macros are in macro_ins
     No other instructions have an underscore
 
     You should almost never (if ever) use JMP, MOVI, LUI, or JAL.
-    Instead use the macros JMP_IMM REL_JMP, MOV_IMM, and JAL_IMM
+    Instead use the macros JMP_IMM JMP_REL, MOV_IMM, and JAL_IMM
     It will make your life easier.
 
     The macros have helpful error checking to help prevent you from 
@@ -67,15 +67,15 @@ helpful macros are in macro_ins
     only access/jump to valid locations. Please use the macros if at all possible
 
 ***MACROS -- NOT DEFINED IN ISA***
-REL_JMP offset reg cond
+JMP_REL offset reg cond
     - jumps on {cond} to {current address + offset}, using {reg}
     - NOTE: will overwrite {reg}
     - assembles into MOVI, LUI, JMP
-    REL_JMP 10 r12 UC
-    REL_JMP -7 r4 EQ
+    JMP_REL 10 r12 UC
+    JMP_REL -7 r4 EQ
 
 JMP_IMM addr reg con
-    - same as REL_JMP, except using an absolute address instead of an offset
+    - same as JMP_REL, except using an absolute address instead of an offset
     - addr must fit in two bytes, and jump to a valid code location
 JAL_IMM addr reg con [lnk]
     - same as JMP_IMM, but JAL
@@ -99,7 +99,7 @@ ADDR_END        = int(0x3FF)
 
 #not defined in ISA, defined in block comment above
 macro_ins = {
-    "REL_JMP":      "0",
+    "JMP_REL":      "0",
     "JMP_IMM":      "1",
     "JAL_IMM":      "2",
     "MOV_IMM":      "3",
@@ -153,26 +153,26 @@ jmp_ld_str_ins = {
     "STOR": "4",
     "JAL":  "8",
     "JMP":  "c",
-    "SNES": "f"
+    "SNES": "f"     #Custom for our cpu, not in ISA
 }
 
 jmp_cond = {
-    "EQ":   "0",
-    "NE":   "1",
-    "CS":   "2",
-    "CC":   "3",
-    "HI":   "4",
-    "LS":   "5",
-    "GT":   "6",
-    "LE":   "7",
-    "FS":   "8",
-    "FC":   "9",
-    "LO":   "a",
-    "hs":   "b",
-    "LT":   "c",
-    "GE":   "d",
-    "UC":   "e",
-    "NJ":   "f"
+    "EQ":   "0",    #Equal
+    "NE":   "1",    #Not Equal
+    "CS":   "2",    #Carry Set
+    "CC":   "3",    #Carry Clear
+    "HI":   "4",    #Higher than
+    "LS":   "5",    #Lower than/same
+    "GT":   "6",    #Greater than
+    "LE":   "7",    #Less than/equal
+    "FS":   "8",    #Flag set
+    "FC":   "9",    #Flag clear
+    "LO":   "a",    #Lower than
+    "HS":   "b",    #higher than/same
+    "LT":   "c",    #Less than
+    "GE":   "d",    #Greater than/equal
+    "UC":   "e",    #unconditional
+    "NJ":   "f"     #never
 }
 
 line_num = 0
@@ -321,11 +321,11 @@ for line in source_file:
         if len(tokens) == 0:
             continue
         #comments
-        if line.startswith("/*"):
+        if line.strip().startswith("/*"):
             block_comment += 1
             continue
 
-        elif line.startswith("*/"):
+        elif line.strip().startswith("*/"):
             block_comment -= 1
             if block_comment < 0:
                 error("unmatched */")
@@ -334,10 +334,14 @@ for line in source_file:
         elif block_comment > 0:
             continue
 
-        elif line.startswith("//"):
+        elif line.strip().startswith("//#"):
+            dest_file.write(line.replace("#", "").lstrip())
             continue
 
-        elif line.startswith("@"):
+        elif line.strip().startswith("//"):
+            continue
+
+        elif line.strip().startswith("@"):
             set_memory_addr(int(line.replace('@', ''), 16))
             dest_file.write(line)
             continue
@@ -361,7 +365,7 @@ for line in source_file:
 
         #first token
         elif tokens[0] in macro_ins:
-            if tokens[0] == "REL_JMP":
+            if tokens[0] == "JMP_REL":
                 dest = tokens[1]
                 reg = tokens[2]
                 cond = tokens[3]
