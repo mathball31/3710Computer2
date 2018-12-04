@@ -135,6 +135,37 @@ fe10
 5201
 //-----End Update head_ptr-----
 @1036
+//-----Write Head-----
+d6F0
+0610
+8614
+//call
+//r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
+de00
+fe02
+4f8e
+//r6(dir) is snes_dir
+deff
+fe0f
+0712
+de00
+fef0
+075e
+//r7(glyph_ptr) is head_ptr
+de00
+fe10
+0812
+881c
+//r8(glyph_byte) is head_byte
+de3a
+fe00
+//r9(glyph_num) is glyph.body_0
+//call
+//set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+de00
+fe01
+4f8e
+//-----End Write Head-----
 //---------End Main Loop---------
 de00
 fe10

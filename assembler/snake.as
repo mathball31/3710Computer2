@@ -148,10 +148,35 @@ JMP_REL 5 r14 NE
     //r6 == 8, SNES is right
     ADDI 1 r2
 //#-----End Update head_ptr-----
+
 @1036
-
-
-
+//#-----Write Head-----
+//put snes_dir in r6
+MOVI 0xF0 r6
+AND r0 r6
+LRSHI 4 r6
+//#call
+//#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
+JAL_IMM 0x0200 r14
+//#r6(dir) is snes_dir
+//put head_ptr in r7
+MOV_IMM 0x0FFF r7
+AND r2 r7
+MOV_IMM 0xF000 r14
+ADD r14 r7
+//#r7(glyph_ptr) is head_ptr
+//put head_byte in r8
+MOV_IMM 0x1000 r8
+AND r2 r8
+LRSHI 12 r8
+//#r8(glyph_byte) is head_byte
+//put glyph.head_0 in r9
+MOV_IMM 0x3a r9
+//#r9(glyph_num) is glyph.body_0
+//#call
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+JAL_IMM 0x0100 r14
+//#-----End Write Head-----
 //check overlap
 
 //#---------End Main Loop---------
