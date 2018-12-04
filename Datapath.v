@@ -21,16 +21,14 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bright, rgb, slowClk);
+module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	parameter ADDR_WIDTH = 12;
 	
 	input clk, reset, serial_data;
-	output snes_clk, data_latch;
-	output hSync, vSync, bright;
-	output [7:0] rgb;
-	output slowClk;
-	
 	wire [15:0] alu_bus;
+	output snes_clk, data_latch;
+	output [27:0] display;
+	
 	wire [4:0] flags_in, flags_out;
 	
 	wire [15:0] r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15;
@@ -77,7 +75,10 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
-	VGA display(clk, reset, hSync, vSync, bright, rgb, slowClk);
+	hexTo7Seg seg0(r0[15:12], display[27:21]);
+	hexTo7Seg seg1(r0[11:8], display[20:14]);
+	hexTo7Seg seg2(r0[7:4], display[13:7]);
+	hexTo7Seg seg3(r0[3:0], display[6:0]);	
 endmodule
 
 

@@ -1,14 +1,12 @@
 
 /* Driver module of the VGA */
 module VGA (clk, clear, hSync, vSync, bright, rgb, slowClk);
-	input clk, clear;
-	output hSync, vSync, bright;
-	output [7:0] rgb;
-	output reg slowClk = 0;
 	
-	// add inputs for players and an output for address
-	// utilize q_b of Memory as input for VGA
-	// need an x and y location
+	input clk, clear;
+	output hSync, vSync;
+	output [7:0] rgb;
+	output bright;
+	output reg slowClk = 0;
 
 	wire [9:0] hCount;
 	wire [9:0] vCount;
@@ -18,10 +16,7 @@ module VGA (clk, clear, hSync, vSync, bright, rgb, slowClk);
 		slowClk <= ~slowClk;
 	end
 	
-	// Only cares about timing - should not have to be changed
 	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
-	
-	// players should always be updated because they are constantly moving
 	
 	BitGen gen (bright, 8'b0000_0000, hCount, vCount, rgb);
 	
@@ -151,19 +146,11 @@ module BitGen (bright, pixelData, hCount, vCount, rgb);
 	parameter RED = 8'b111_000_00;
 	parameter MAGENTA = 8'b111_000_11;
 	parameter YELLOW = 8'b111_111_00;
-	parameter WHITE = 8'b111_111_11;
+	parameter WHITE = 8'b111_111_11; 
 	
-	// moves the pointer to 0,0 on the screen.
-	parameter HSTART = 144;
-	parameter VSTART = 31;
 	
 	 
 	// there are 640 pixels in a row, and 480 in a column
-//	always@(*)
-//	begin
-//		
-//	end
-	
 	always@(*) // paint the bars
 	begin
 		if (bright)
@@ -187,11 +174,10 @@ module BitGen (bright, pixelData, hCount, vCount, rgb);
 			else
 				rgb = BLACK;
 		end
+		
 		else
 			rgb = 8'b00000000;
 	end
-	
-	
 	
 	/** glyph number is hCount and vCount minus the low three bits
 	 * glyph bits are the low-order 4 bits in each of hCount and vCount
