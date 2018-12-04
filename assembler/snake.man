@@ -12,9 +12,6 @@ End of Frame_buffer:    0xF960
 Start of Glyphs:
 End of Gylphs:
 
-Start of snakes:
-End of snakes:
-
 
 End of memory: 0xFFFF
 
@@ -70,7 +67,7 @@ glyph {
         01: down
         10: left
         11: right
-    [6:0] offset in glyph table
+    [6:0] glyph number
         if [6:4] == 3'b111
             glyph is part of game
             [3:0] game piece

@@ -170,3 +170,10 @@ fe01
 de00
 fe10
 4ece
+@F000
+//-----Frame_Buffer start-----
+//initial head_0
+@F05A
+    FA00
+//-----Frame_Buffer end-----
+@F960

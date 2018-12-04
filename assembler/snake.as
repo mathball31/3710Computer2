@@ -181,3 +181,15 @@ JAL_IMM 0x0100 r14
 
 //#---------End Main Loop---------
 JMP_IMM 0x1000 r14 UC
+
+
+@F000
+//#-----Frame_Buffer start-----
+//#initial head_0
+@F05A
+INIT
+    FA00
+END
+
+//#-----Frame_Buffer end-----
+@F960

@@ -97,8 +97,8 @@ print_addr
 import sys, traceback
 
 #TODO
-PROGRAM_START   = int(0x000)
-PROGRAM_END     = int(0xFFFF)
+PROGRAM_START   = int(0x0000)
+PROGRAM_END     = int(0x2000)
 ADDR_END        = int(0xFFFF)
 
 
