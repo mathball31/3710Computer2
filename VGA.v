@@ -1,8 +1,10 @@
 
 /* Driver module of the VGA */
-module VGA (clk, clear, hSync, vSync, bright, rgb, slowClk);
+module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 	
 	input clk, clear;
+	input [15:0] glyph;
+	output addr_out;
 	output hSync, vSync;
 	output [7:0] rgb;
 	output bright;
@@ -11,15 +13,105 @@ module VGA (clk, clear, hSync, vSync, bright, rgb, slowClk);
 	wire [9:0] hCount;
 	wire [9:0] vCount;
 	
+	reg [15:0] addr_in;
+	
+	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
+		
 	always @ (posedge clk)
 	begin
 		slowClk <= ~slowClk;
+		
+		// if hcount/vcount reach a specific spot on the screen, get a glyph
+		if (hCount == 200 && vCount == 207)
+			addr_in = 16'b0000_0000_0000_0100;
 	end
+
+	AddrGen ag(clk, hCount, vCount, addr_in, addr_out);
+	BitGen gen (bright, glyph, hCount, vCount, rgb);
+
+endmodule
+
+
+module AddrGen(clk, x, y, addr_in, addr_out);
+	input clk;
+	input [9:0] x, y;
+	input [15:0] addr_in;
+	output reg [15:0] addr_out;
 	
-	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
+	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
-	BitGen gen (bright, 8'b0000_0000, hCount, vCount, rgb);
+	reg nextBit = 0;
+	integer count = 0;
 	
+	always @(posedge clk)
+	begin
+		if (y >= 200 && y <= 207)
+		begin
+			if (x >= 200 && x <= 207)
+			begin
+				// only move to the next address when nextBit = 1;
+				if (nextBit)
+					addr_out <= addr_in + count;
+				else
+					addr_out <= addr_out;
+			end
+			else
+				addr_out <= DEFAULT;
+		end
+		else
+			addr_out <= DEFAULT;
+		
+		nextBit <= ~nextBit;
+		count <= count + 1;
+	end
+endmodule
+
+
+/*
+	Is a combinational circuit
+	Decides for each pixel what color should be on the screen
+	
+	Glyph graphics - break the screen into chunks
+*/
+module BitGen (bright, glyph, hCount, vCount, rgb);
+	
+	input bright;
+	input [15:0] glyph;
+	input [9:0] hCount, vCount;
+	output reg [7:0] rgb;
+	
+	// First just dipslay vertical bars of each color:
+	parameter BLACK = 8'b000_000_00;
+	parameter BLUE = 8'b000_000_11;
+	parameter GREEN = 8'b000_111_00; 
+	parameter CYAN = 8'b000_111_11;
+	parameter RED = 8'b111_000_00;
+	parameter MAGENTA = 8'b111_000_11;
+	parameter YELLOW = 8'b111_111_00;
+	parameter WHITE = 8'b111_111_11; 
+	
+	
+	 
+	// there are 640 pixels in a row, and 480 in a column
+	always@(*) // paint the bars
+	begin
+		if (bright)
+		begin
+			if ((hCount >= 200 && hCount <= 207) ||
+				 (vCount >= 200 && vCount <= 207))
+				rgb = glyph[15:8];
+			else if ((hCount >= 208 && hCount <= 215) ||
+						(vCount >= 200 && vCount <= 207))
+				rgb = glyph[7:0];
+			else if ((hCount >= 216 && hCount <= 223) ||
+						(vCount >= 200 && vCount <= 207))
+				rgb = CYAN;
+			else
+				rgb = BLACK;
+		end
+		else
+			rgb = 8'b00000000;
+	end
 endmodule
 
 
@@ -123,95 +215,4 @@ module VGAControl (clock, clear, hSync, vSync, bright, hCount, vCount);
 			bright <= 0;
 		
 	end
-endmodule
-
-/*
-	Is a combinational circuit
-	Decides for each pixel what color should be on the screen
-	
-	Glyph graphics - break the screen into chunks
-*/
-module BitGen (bright, pixelData, hCount, vCount, rgb);
-	
-	input bright;
-	input [7:0] pixelData;
-	input [9:0] hCount, vCount;
-	output reg [7:0] rgb;
-	
-	// First just dipslay vertical bars of each color:
-	parameter BLACK = 8'b000_000_00;
-	parameter BLUE = 8'b000_000_11;
-	parameter GREEN = 8'b000_111_00; 
-	parameter CYAN = 8'b000_111_11;
-	parameter RED = 8'b111_000_00;
-	parameter MAGENTA = 8'b111_000_11;
-	parameter YELLOW = 8'b111_111_00;
-	parameter WHITE = 8'b111_111_11; 
-	
-	
-	 
-	// there are 640 pixels in a row, and 480 in a column
-	always@(*) // paint the bars
-	begin
-		if (bright)
-		begin
-			if ((hCount >= 155) && (hCount <=235)) 
-				rgb = BLACK; 
-			else if ((hCount >= 236) && (hCount <= 315))
-				rgb = BLUE;
-			else if ((hCount >= 316) && (hCount <= 395))
-				rgb = GREEN;
-			else if ((hCount >= 396) && (hCount <= 475))
-				rgb = CYAN;
-			else if ((hCount >= 476) && (hCount <= 555))
-				rgb = RED;
-			else if ((hCount >= 556) && (hCount <= 635))
-				rgb = MAGENTA;
-			else if ((hCount >= 636) && (hCount <= 715))
-				rgb = YELLOW;
-			else if ((hCount >= 716) && (hCount <= 795))
-				rgb = WHITE;
-			else
-				rgb = BLACK;
-		end
-		
-		else
-			rgb = 8'b00000000;
-	end
-	
-	/** glyph number is hCount and vCount minus the low three bits
-	 * glyph bits are the low-order 4 bits in each of hCount and vCount
-	 * Figure out which screen chunk you’re in, then reference the bits from the glyph memory 
-	 *
-	 * Use 16 pixels square for each block.  This results in a grid of 40 x 30.
-	 * the glyphs will be stored somewhere in memory:  They should be:
-	 *		* The letters A - Z plus a few special characters (dash, colon, exlamation point)
-	 *    * Green glyphs for green snake
-	 *    * Blue glyphs for blue snake
-	 *    * Red glyphs for food
-	 *    * Black (default background color)
-	 *
-	 * A grid of 40 x 30 would require a memory block of 1200 bytes
-	 * and a separate storage for 32 glyphs
-	 *
-	 * Check which block we are in (refer to the block of memory)
-	 *
-	 * Check where in the block (glyph) we are in (now refer to the glyph memory)
-	 *
-	 * Display the correct pixel of the glyph
-	 **/
-	 
-	 /*pseudo code for glyphs
-	 
-	 hGlyphCount = hCount[9:4];
-	 hInnerGlyphCount = hCount[3:0];
-	 
-	 vGlyphCount = vCount[9:4];
-	 vInnerGlyphCount = vCount[3:0];
-	 
-	 GetGlyphFromWorld
-	 
-	 */
-	 
-
 endmodule
