@@ -22,7 +22,7 @@
 This module handles the interactions between the ALU and register file.
 */
 module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
-	parameter ADDR_WIDTH = 12;
+	parameter ADDR_WIDTH = 16;
 	
 	input clk, reset, serial_data;
 	wire [15:0] alu_bus;
@@ -61,7 +61,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, display);
 	
 	ALU alu(mux_A_out, mux_B_out, opcode, flags_out[3], flags_in, alu_bus);
 	
-	ProgramCounter pc(clk, !reset, pc_en, pc_ld, mux_A_out[ADDR_WIDTH-1:0], pc_out);
+	ProgramCounter #(.ADDR_WIDTH(ADDR_WIDTH)) pc(clk, !reset, pc_en, pc_ld, mux_A_out[ADDR_WIDTH-1:0], pc_out);
 	
 	Flags flags(clk, !reset, flag_en, flags_in, flags_out);
 	
