@@ -77,7 +77,7 @@ JMP_REL offset reg cond
 JMP_IMM addr reg con
     - same as JMP_REL, except using an absolute address instead of an offset
     - addr must fit in two bytes, and jump to a valid code location
-JAL_IMM addr reg con [lnk]
+JAL_IMM addr reg [lnk]
     - same as JMP_IMM, but JAL
     - lnk defaults to r15 if none specified
     - addr must fit in two bytes, and jump to a valid code location
@@ -92,8 +92,8 @@ import sys, traceback
 
 #TODO
 PROGRAM_START   = int(0x000)
-PROGRAM_END     = int(0x3FF)
-ADDR_END        = int(0x3FF)
+PROGRAM_END     = int(0xFFFF)
+ADDR_END        = int(0xFFFF)
 
 
 
@@ -411,10 +411,9 @@ for line in source_file:
                 else:
                     dest = int(dest)
                 reg = tokens[2]
-                cond = tokens[3]
                 link = "r15"
-                if len(tokens) == 5:
-                    link = tokens[4]
+                if len(tokens) == 4:
+                    link = tokens[3]
 
                 addr = int_to_hex(dest)
 

@@ -1,78 +1,40 @@
 de00
-fe01
+fe10
 4ece
-//Main loop
+//void update_head(r6(snake_dir), r7(SNES_dir), r8(head_ptr), r9(head_byte))
 @100
+//Main loop
+@1000
 40f0
+//put snake_dir in r6
+de00
+fe06
+0612
+861d
+d901
+8946
+06d9
+//put snes_dir in r7
+d7F0
+0710
+8714
+//put head_ptr in r8
 deff
 fe0f
-0c12
-4c0c
+0812
 de00
-fe20
-0612
-b600
-//jmp if snake is moving horizontally
-de20
+fef0
+085e
+//put head_byte in r9
+de00
+fe10
+0912
+891c
+//call 
+//update_head(r6(snake_dir), r7(SNES_dir), r8(head_ptr), r9(head_byte))
+de00
 fe01
-41ce
-//vertical
-de40
-fe00
-0610
-b600
-//jmp if snes not left
-de15
-fe01
-40ce
-//snes is left
-9c01
-de32
-fe01
-4ece
-//snes is not left
-de50
-fe00
-0610
-b600
-//jmp if snes not right
-de32
-fe01
-40ce
-//snes is right
-5c01
-de32
-fe01
-4ece
-//snes is not right
-//horizontal
-de10
-fe00
-0610
-//jmp if snes not up
-de2a
-fe01
-40ce
-//snes is up
-9c50
-de32
-fe01
-4ece
-//snes is not up
-de20
-fe00
-0610
-//jmp if snes not down
-de32
-fe01
-4ece
-//snes is down
-5c50
-de32
-fe01
-4ece
-//snes is not down
-@132
+4f8e
 5201
 //write snake location r12
 424c
