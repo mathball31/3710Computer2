@@ -20,22 +20,19 @@ module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 	always @ (posedge clk)
 	begin
 		slowClk <= ~slowClk;
-		
-		// if hcount/vcount reach a specific spot on the screen, get a glyph
-		if (hCount == 200 && vCount == 207)
-			addr_in = 16'b0000_0000_0000_0100;
 	end
 
-	AddrGen ag(clk, hCount, vCount, addr_in, addr_out);
+	AddrGen ag(slowClk, hCount, vCount, addr_out);
+	
 	BitGen gen (bright, glyph, hCount, vCount, rgb);
 
 endmodule
 
 
-module AddrGen(clk, x, y, addr_in, addr_out);
+module AddrGen(clk, x, y, addr_out);
 	input clk;
 	input [9:0] x, y;
-	input [15:0] addr_in;
+	//input [15:0] addr_in;
 	output reg [15:0] addr_out;
 	
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
@@ -45,13 +42,15 @@ module AddrGen(clk, x, y, addr_in, addr_out);
 	
 	always @(posedge clk)
 	begin
+		nextBit <= ~nextBit;
+
 		if (y >= 200 && y <= 207)
 		begin
 			if (x >= 200 && x <= 207)
 			begin
 				// only move to the next address when nextBit = 1;
 				if (nextBit)
-					addr_out <= addr_in + count;
+					addr_out <= 16'b0000_0000_0000_0100 + count;
 				else
 					addr_out <= addr_out;
 			end
@@ -61,7 +60,6 @@ module AddrGen(clk, x, y, addr_in, addr_out);
 		else
 			addr_out <= DEFAULT;
 		
-		nextBit <= ~nextBit;
 		count <= count + 1;
 	end
 endmodule
@@ -74,7 +72,6 @@ endmodule
 	Glyph graphics - break the screen into chunks
 */
 module BitGen (bright, glyph, hCount, vCount, rgb);
-	
 	input bright;
 	input [15:0] glyph;
 	input [9:0] hCount, vCount;
@@ -90,27 +87,40 @@ module BitGen (bright, glyph, hCount, vCount, rgb);
 	parameter YELLOW = 8'b111_111_00;
 	parameter WHITE = 8'b111_111_11; 
 	
+	reg pixel = 1;
 	
 	 
 	// there are 640 pixels in a row, and 480 in a column
-	always@(*) // paint the bars
+	always@(*) // paint
 	begin
 		if (bright)
 		begin
-			if ((hCount >= 200 && hCount <= 207) ||
-				 (vCount >= 200 && vCount <= 207))
-				rgb = glyph[15:8];
-			else if ((hCount >= 208 && hCount <= 215) ||
-						(vCount >= 200 && vCount <= 207))
-				rgb = glyph[7:0];
-			else if ((hCount >= 216 && hCount <= 223) ||
-						(vCount >= 200 && vCount <= 207))
-				rgb = CYAN;
+			pixel = ~pixel;
+			
+			if (vCount >= 400 && vCount <= 407)
+			begin
+				if (hCount >= 200 && hCount <= 207)
+				begin 
+//					rgb = glyph;
+					
+					if (pixel)
+						rgb = GREEN;
+					else
+						rgb = GREEN;
+				end
+				else
+				begin
+					if (pixel)
+						rgb = glyph[15:8];
+					else
+						rgb = glyph[7:0];
+				end
+			end
 			else
 				rgb = BLACK;
 		end
 		else
-			rgb = 8'b00000000;
+			rgb = BLACK;
 	end
 endmodule
 
