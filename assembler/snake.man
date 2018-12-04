@@ -1,0 +1,90 @@
+//Snakeeeeeeee
+/*
+
+Start of code: 0x000
+
+
+End of code:
+
+Start of Frame_buffer:  0xF000
+End of Frame_buffer:    0xF960
+
+Start of Glyphs:
+End of Gylphs:
+
+Start of snakes:
+End of snakes:
+
+
+End of memory: 0xFFFF
+
+
+Size of screen: 60x80
+
+Size of board: 59x80
+
+
+Register Conventions:
+NOTE: even regs SNES_0, odd regs SNES_1
+r0: SNES_0
+r1: SNES_1
+    0: B
+    1: Y
+    2: Select
+    3: Start
+    4: Up
+    5: Down
+    6: Left
+    7: Right
+    8: A
+    9: X
+   10: L
+   11: R
+
+r2: snake_0_head
+r3: snake_1_head
+    [11:0] offset from frame_buffer to head_location
+    [12] head_byte
+        0: low_byte
+        1: high_byte
+    [14:13] direction
+        NOTE: 14: up/down vs left/right
+        00: up
+        01: down
+        10: left
+        11: right
+
+r4: snake_0_tail
+r5: snake_1_tail
+    [12:0] offset from board_start
+
+
+r14: JMP_IMM/JMP_REL
+r15: JAL/Return
+
+Structs lol
+glyph {
+    [8:7] direction to next snake piece in frame_buffer
+        NOTE: 13: up/down vs left/right
+        00: up
+        01: down
+        10: left
+        11: right
+    [6:0] offset in glyph table
+        if [6:4] == 3'b111
+            glyph is part of game
+            [3:0] game piece
+                000: wall   0x38
+                001: food   0x39
+                010: head_0 0x3a
+                011: head_1 0x3b
+                100: tail_0 0x3c
+                101: tail_1 0x3d
+                110: body_0 0x3e
+                111: body_1 0x3f
+        else
+            glyph is text etc
+}
+        
+
+*/

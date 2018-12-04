@@ -87,6 +87,12 @@ MOV_IMM val reg
         MOVI val(lower byte) reg
         LUI val(upper byte) reg
     - val must fit in two bytes
+
+***Assembler specific instructions***
+    These have no effect on the code
+print_addr
+    - prints the line number and memory address at the given line to the console
+
 '''
 import sys, traceback
 
@@ -346,6 +352,10 @@ for line in source_file:
             dest_file.write(line)
             continue
 
+        elif line.strip().startswith("print_addr"):
+            print("Line number: " + str(line_num) + " Memory Address: " + hex(memory_addr))
+            continue
+
         elif line == "INIT\n":
             if memory_block:
                 error("unmatched INIT")
@@ -376,7 +386,7 @@ for line in source_file:
                     offset = int(dest, 16)
                 else:
                     offset = int(dest)
-                addr_val = memory_addr + offset
+                addr_val = memory_addr + offset + 2
                 if addr_val < PROGRAM_START or addr_val > PROGRAM_END:
                     error("invalid jump location: " + hex(addr_val))
                 addr = int_to_hex(addr_val)
