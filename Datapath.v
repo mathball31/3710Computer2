@@ -42,7 +42,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	
 	wire pc_en, w_en_a, w_en_b, pc_sel, imm_sel, flag_en, alu_sel, pc_ld;  // Output from FSM
 	wire [3:0] mux_A_sel, mux_B_sel;
-	wire [15:0] data_b; 
+	wire [15:0] glyph; 
 	wire [ADDR_WIDTH-1:0] addr_b; 
 	wire [ADDR_WIDTH-1:0] pc_out;
 	wire [ADDR_WIDTH-1:0] pc_mux_out = pc_sel ? pc_out : mux_A_out[ADDR_WIDTH-1:0];	
@@ -71,12 +71,12 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	SNES_Control snes_control(clk_1200, !reset, serial_data, snes_clk, data_latch, button_data);
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
-	Memory #(.DATA_WIDTH(16), .ADDR_WIDTH(ADDR_WIDTH)) mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
+	Memory #(.DATA_WIDTH(16), .ADDR_WIDTH(ADDR_WIDTH)) mem(clk, w_en_a, w_en_b, mux_B_out, glyph, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
 	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
-	VGA display(clk, reset, hSync, vSync, bright, rgb, slowClk);
+	VGA display(clk, reset, glyph, hSync, vSync, bright, rgb, slowClk, addr_b);
 endmodule
 
 
