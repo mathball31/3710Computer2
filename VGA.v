@@ -4,7 +4,7 @@ module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 	
 	input clk, clear;
 	input [15:0] glyph;
-	output addr_out;
+	output [15:0] addr_out;
 	output hSync, vSync;
 	output [7:0] rgb;
 	output bright;
@@ -13,56 +13,73 @@ module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 	wire [9:0] hCount;
 	wire [9:0] vCount;
 	
-	reg [15:0] addr_in;
+	// reg [15:0] addr_in;
 	
-	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
-		
 	always @ (posedge clk)
 	begin
 		slowClk <= ~slowClk;
-		
-		// if hcount/vcount reach a specific spot on the screen, get a glyph
-		if (hCount == 200 && vCount == 207)
-			addr_in = 16'b0000_0000_0000_0100;
 	end
 
-	AddrGen ag(clk, hCount, vCount, addr_in, addr_out);
+	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
+		
+	AddrGen ag(slowClk, hCount, vCount, addr_out);
+	
 	BitGen gen (bright, glyph, hCount, vCount, rgb);
 
 endmodule
 
 
-module AddrGen(clk, x, y, addr_in, addr_out);
+module AddrGen(clk, x, y, addr_out);
 	input clk;
 	input [9:0] x, y;
-	input [15:0] addr_in;
+	//input [15:0] addr_in;
 	output reg [15:0] addr_out;
 	
+	// (0,0) on our display
+	parameter HSTART = 144;
+	parameter VSTART = 31;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
 	reg nextBit = 0;
-	integer count = 0;
 	
+	reg [15:0] addr = 16'b0000_0000_0000_0100;
+		
 	always @(posedge clk)
 	begin
-		if (y >= 200 && y <= 207)
+		if ((x >= 200 && x <= 207) ||
+			 (y >= 100 && y <= 107))
 		begin
-			if (x >= 200 && x <= 207)
-			begin
-				// only move to the next address when nextBit = 1;
-				if (nextBit)
-					addr_out <= addr_in + count;
-				else
-					addr_out <= addr_out;
-			end
-			else
-				addr_out <= DEFAULT;
+			addr_out <= addr;
 		end
 		else
+		begin
 			addr_out <= DEFAULT;
+		end
+
+//		// now between the bounds of the glyph, update the pixels accordingly with addresses
+//		if( y > VSTART && y < (VSTART + 8))
+//		begin
+//			if( x > HSTART && x < (HSTART + 8))
+//			begin
+//				// at every other edge of the clock, update the address for the next bit
+//				// otherwise, keep the same address
+//				if(nextBit)
+//					addr_out <= addr_out + 1'b1;
+//				else
+//					addr_out <= addr_out;
+//			end
+//			else
+//			begin
+//				addr_out <= DEFAULT;
+//			end
+//		end
+//		else
+//		begin
+//			addr_out <= DEFAULT;
+//		end
 		
-		nextBit <= ~nextBit;
-		count <= count + 1;
+		// flip this dummy variable to tell when it's the next time to update the address
+		nextBit = ~nextBit;
 	end
 endmodule
 
@@ -74,7 +91,6 @@ endmodule
 	Glyph graphics - break the screen into chunks
 */
 module BitGen (bright, glyph, hCount, vCount, rgb);
-	
 	input bright;
 	input [15:0] glyph;
 	input [9:0] hCount, vCount;
@@ -90,27 +106,26 @@ module BitGen (bright, glyph, hCount, vCount, rgb);
 	parameter YELLOW = 8'b111_111_00;
 	parameter WHITE = 8'b111_111_11; 
 	
+	reg pixel = 1;
 	
 	 
 	// there are 640 pixels in a row, and 480 in a column
-	always@(*) // paint the bars
+	always@(*) // paint
 	begin
 		if (bright)
-		begin
-			if ((hCount >= 200 && hCount <= 207) ||
-				 (vCount >= 200 && vCount <= 207))
+		begin	
+			if(pixel)
 				rgb = glyph[15:8];
-			else if ((hCount >= 208 && hCount <= 215) ||
-						(vCount >= 200 && vCount <= 207))
-				rgb = glyph[7:0];
-			else if ((hCount >= 216 && hCount <= 223) ||
-						(vCount >= 200 && vCount <= 207))
-				rgb = CYAN;
 			else
-				rgb = BLACK;
+				rgb = glyph[7:0];
 		end
 		else
-			rgb = 8'b00000000;
+		begin
+			rgb = BLACK;
+		end
+
+		pixel = ~pixel;
+
 	end
 endmodule
 
