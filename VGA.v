@@ -58,38 +58,33 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 			state = 5'b0;
 			pixel_addr = 12'b00_0000_0000;
 		end
-		if (x >= HSTART && y >= VSTART && x < HEND && y < VEND)
+		
+		pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
+		if ((x >= HSTART && x < HEND) &&
+			 (y >= VSTART && y < VEND))
 		begin
-		//pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
 			case (state)
-				0: 
+				0:
 				begin
-					//addr_out = {6'b1111_00, pixel_addr[12:3]};
+					addr_out = {6'b1111_00, pixel_addr[12:3]};
+					//addr_out = 16'b1111_0000_0101_1010;
 					
-					addr_out = 16'b1111_0000_0101_1010;
 					state = 1;
 				end
-				1: 
+				1:
 				begin
-					glyph_addr = {8'b0, mem_out[15:8]};		// concatenating 0's to eliminate warning
+					glyph_addr = {8'b0, mem_out[15:8]};
+					
 					state = 2;
 				end
 				2:
 				begin
-					if (pixel_addr >= 12'b1001_0110_0000)
-					begin
-						pixel_addr = 12'b0;
-					end
-					else
-					begin
-					pixel_addr = pixel_addr + 1'b1;					
-					end
-					
 					addr_out = glyph_addr + pixel_addr[2:0];
+					
 					state = 3;
 				end
-				3: 
-				begin			
+				3:
+				begin
 					pixel = mem_out[15:8];
 					if (pixel_addr[2:0] == 3'b111)
 					begin
@@ -102,6 +97,52 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 				end
 			endcase
 		end
+		
+		
+//		if (x >= HSTART && y >= VSTART && x < HEND && y < VEND)
+//		begin
+//		//pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
+//			case (state)
+//				0: 
+//				begin
+//					//addr_out = {6'b1111_00, pixel_addr[12:3]};
+//					
+//					addr_out = 16'b1111_0000_0101_1010;
+//					state = 1;
+//				end
+//				1: 
+//				begin
+//					glyph_addr = {8'b0, mem_out[15:8]};		// concatenating 0's to eliminate warning
+//					state = 2;
+//				end
+//				2:
+//				begin
+//					if (pixel_addr >= 12'b1001_0110_0000)
+//					begin
+//						pixel_addr = 12'b0;
+//					end
+//					else
+//					begin
+//					pixel_addr = pixel_addr + 1'b1;					
+//					end
+//					
+//					addr_out = glyph_addr + pixel_addr[2:0];
+//					state = 3;
+//				end
+//				3: 
+//				begin			
+//					pixel = mem_out[15:8];
+//					if (pixel_addr[2:0] == 3'b111)
+//					begin
+//						state = 0;
+//					end
+//					else
+//					begin
+//						state = 2;
+//					end
+//				end
+//			endcase
+//		end
 	
 	end
 endmodule
