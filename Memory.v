@@ -16,8 +16,8 @@ module Memory
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
-		// $readmemh("C:/Users/dirkl/3710Computer2/JALtest.txt", ram);
-		$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
+		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTest.txt", ram);
+		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
 	end
 

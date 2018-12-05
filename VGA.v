@@ -38,25 +38,26 @@ module AddrGen(clk, x, y, addr_out);
 	// (0,0) on our display
 	parameter HSTART = 144;
 	parameter VSTART = 31;
-	parameter DEFAULT = 16'b0000_0000_0000_0010;
+	parameter DEFAULT = 16'b0000_0000_0000_0000;
 	
 	reg nextBit = 0;
 	
-	reg [15:0] addr = 16'b0000_0000_0000_0100;
+	reg [15:0] addr = 16'b0000_0000_1111_1010;
 		
 	always @(posedge clk)
 	begin
-		if ((x >= 200 && x <= 207) ||
-			 (y >= 100 && y <= 107))
-		begin
-			addr_out <= addr;
-		end
-		else
-		begin
-			addr_out <= DEFAULT;
-		end
+//		if ((x >= 200 && x <= 207) &&
+//			 (y >= 100 && y <= 107))
+//		begin
+//			addr_out <= addr;
+//		end
+//		else
+//		begin
+//			addr_out <= DEFAULT;
+//		end
+	
 
-//		// now between the bounds of the glyph, update the pixels accordingly with addresses
+		// now between the bounds of the glyph, update the pixels accordingly with addresses
 //		if( y > VSTART && y < (VSTART + 8))
 //		begin
 //			if( x > HSTART && x < (HSTART + 8))
@@ -78,8 +79,10 @@ module AddrGen(clk, x, y, addr_out);
 //			addr_out <= DEFAULT;
 //		end
 		
+		addr = x + 80 * y;
+		addr_out = {3'b0, addr[15:3]};
 		// flip this dummy variable to tell when it's the next time to update the address
-		nextBit = ~nextBit;
+		//nextBit = ~nextBit;
 	end
 endmodule
 
