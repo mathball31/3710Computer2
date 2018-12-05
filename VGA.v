@@ -1,9 +1,9 @@
 
 /* Driver module of the VGA */
-module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
+module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 	
-	input clk, clear;
-	input [15:0] glyph;
+	input clk, reset;
+	input [15:0] mem_out;
 	output [15:0] addr_out;
 	output hSync, vSync;
 	output [7:0] rgb;
@@ -12,6 +12,7 @@ module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	wire [9:0] hCount;
 	wire [9:0] vCount;
+	wire [7:0] glyph;
 	
 	// reg [15:0] addr_in;
 	
@@ -20,66 +21,88 @@ module VGA (clk, clear, glyph, hSync, vSync, bright, rgb, slowClk, addr_out);
 		slowClk <= ~slowClk;
 	end
 
-	VGAControl control (slowClk, clear, hSync, vSync, bright, hCount, vCount);
+	VGAControl control (slowClk, reset, hSync, vSync, bright, hCount, vCount);
 		
-	AddrGen ag(slowClk, hCount, vCount, addr_out);
+	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph);
 	
 	BitGen gen (bright, glyph, hCount, vCount, rgb);
 
 endmodule
 
 
-module AddrGen(clk, x, y, addr_out);
-	input clk;
+module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
+	input clk, reset;
+	input [15:0] mem_out;
 	input [9:0] x, y;
 	//input [15:0] addr_in;
 	output reg [15:0] addr_out;
+	output reg [7:0] pixel;
 	
 	// (0,0) on our display
-	parameter HSTART = 144;
-	parameter VSTART = 31;
+	parameter HSTART = 8'b10010000;
+	parameter VSTART = 5'b11111;
+	parameter HEND = 794;
+	parameter VEND = 511;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
 	reg nextBit = 0;
+	reg [4:0] state = 0;
 	
-	reg [15:0] addr = 16'b0000_0000_0000_0100;
-		
+	reg [15:0] glyph_addr;
+	reg [12:0] pixel_addr;
+	
 	always @(posedge clk)
 	begin
-		if ((x >= 200 && x <= 207) ||
-			 (y >= 100 && y <= 107))
+		if (reset)
 		begin
-			addr_out <= addr;
+			state = 5'b0;
+			pixel_addr = 12'b00_0000_0000;
 		end
-		else
+		if (x >= HSTART && y >= VSTART && x < HEND && y < VEND)
 		begin
-			addr_out <= DEFAULT;
+		//pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
+			case (state)
+				0: 
+				begin
+					//addr_out = {6'b1111_00, pixel_addr[12:3]};
+					
+					addr_out = 16'b1111_0000_0101_1010;
+					state = 1;
+				end
+				1: 
+				begin
+					glyph_addr = {8'b0, mem_out[15:8]};		// concatenating 0's to eliminate warning
+					state = 2;
+				end
+				2:
+				begin
+					if (pixel_addr >= 12'b1001_0110_0000)
+					begin
+						pixel_addr = 12'b0;
+					end
+					else
+					begin
+					pixel_addr = pixel_addr + 1'b1;					
+					end
+					
+					addr_out = glyph_addr + pixel_addr[2:0];
+					state = 3;
+				end
+				3: 
+				begin			
+					pixel = mem_out[15:8];
+					if (pixel_addr[2:0] == 3'b111)
+					begin
+						state = 0;
+					end
+					else
+					begin
+						state = 2;
+					end
+				end
+			endcase
 		end
-
-//		// now between the bounds of the glyph, update the pixels accordingly with addresses
-//		if( y > VSTART && y < (VSTART + 8))
-//		begin
-//			if( x > HSTART && x < (HSTART + 8))
-//			begin
-//				// at every other edge of the clock, update the address for the next bit
-//				// otherwise, keep the same address
-//				if(nextBit)
-//					addr_out <= addr_out + 1'b1;
-//				else
-//					addr_out <= addr_out;
-//			end
-//			else
-//			begin
-//				addr_out <= DEFAULT;
-//			end
-//		end
-//		else
-//		begin
-//			addr_out <= DEFAULT;
-//		end
-		
-		// flip this dummy variable to tell when it's the next time to update the address
-		nextBit = ~nextBit;
+	
 	end
 endmodule
 
@@ -90,9 +113,9 @@ endmodule
 	
 	Glyph graphics - break the screen into chunks
 */
-module BitGen (bright, glyph, hCount, vCount, rgb);
+module BitGen (bright, pixel, hCount, vCount, rgb);
 	input bright;
-	input [15:0] glyph;
+	input [7:0] pixel;
 	input [9:0] hCount, vCount;
 	output reg [7:0] rgb;
 	
@@ -106,25 +129,18 @@ module BitGen (bright, glyph, hCount, vCount, rgb);
 	parameter YELLOW = 8'b111_111_00;
 	parameter WHITE = 8'b111_111_11; 
 	
-	reg pixel = 1;
-	
-	 
+
 	// there are 640 pixels in a row, and 480 in a column
 	always@(*) // paint
 	begin
 		if (bright)
 		begin	
-			if(pixel)
-				rgb = glyph[15:8];
-			else
-				rgb = glyph[7:0];
+			rgb = pixel;
 		end
 		else
 		begin
 			rgb = BLACK;
 		end
-
-		pixel = ~pixel;
 
 	end
 endmodule
@@ -184,7 +200,7 @@ module VGAControl (clock, clear, hSync, vSync, bright, hCount, vCount);
 	always@ (posedge clock)
 	begin
 	
-		if(!clear)
+		if(clear)
 		begin
 			hCount <= 10'b0;
 			vCount <= 10'b0;

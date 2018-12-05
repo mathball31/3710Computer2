@@ -76,7 +76,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
-	VGA display(clk, reset, mem_out_b, hSync, vSync, bright, rgb, slowClk, addr_b);
+	VGA display(clk, !reset, mem_out_b, hSync, vSync, bright, rgb, slowClk, addr_b);
 endmodule
 
 
