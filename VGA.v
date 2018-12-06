@@ -42,12 +42,12 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 	// (0,0) on our display
 	parameter HSTART = 8'b10010000;
 	parameter VSTART = 5'b11111;
-	parameter HEND = 794;
+	parameter HEND = 784;
 	parameter VEND = 511;
-	parameter DEFAULT = 16'b0000_0000_0000_0010;
+	parameter DEFAULT = 16'b00_0000_0000_0010;
 	
-	parameter FRAME_BUFFER_START 	= 14'b0011_0000_0000_0000;
-	parameter SCREEN_WIDTH 			= 7'b1010000;
+	parameter FRAME_BUFFER_START 	= 14'b11_0000_0000_0000;
+	parameter SCREEN_WIDTH 			= 6'b101000;
 	
 	reg [4:0] state = 0;
 	
@@ -60,6 +60,7 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 			state = 5'b0;
 		end
 		
+		// in between the display of the screen
 		if ((h_count >= HSTART && h_count < HEND) &&
 			 (v_count >= VSTART && v_count < VEND))
 		begin
@@ -125,7 +126,7 @@ module BitGen (bright, glyph_num, x, y, rgb);
 		if (bright)
 		begin
 			// the x and y is the color of the pixel (?)
-			rgb = glyph_table[{2'b0, glyph_num[5:0], y, x}];
+			rgb = glyph_table[{glyph_num[5:0], y, x}];
 		end
 		else
 		begin
