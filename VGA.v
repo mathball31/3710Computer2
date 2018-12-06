@@ -1,10 +1,10 @@
 
 /* Driver module of the VGA */
-module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
+module VGA #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 	
 	input clk, reset;
 	input [15:0] mem_out;
-	output [15:0] addr_out;
+	output [ADDR_WIDTH-1:0] addr_out;
 	output hSync, vSync;
 	output [7:0] rgb;
 	output bright;
@@ -24,18 +24,18 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	VGAControl control (slowClk, reset, hSync, vSync, bright, hCount, vCount);
 		
-	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num, glyph_x, glyph_y);
+	AddrGen #(.ADDR_WIDTH(ADDR_WIDTH)) ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num, glyph_x, glyph_y);
 	
 	BitGen gen (bright, glyph_num, glyph_x, glyph_y, rgb);
 
 endmodule
 
 
-module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph_x, glyph_y);
+module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph_x, glyph_y);
 	input clk, reset;
 	input [15:0] mem_out;
 	input [9:0] h_count, v_count;
-	output reg [15:0] addr_out;
+	output reg [ADDR_WIDTH-1:0] addr_out;
 	output reg [7:0] glyph_num;
 	output reg [2:0] glyph_x, glyph_y;
 	
@@ -46,7 +46,7 @@ module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph
 	parameter VEND = 511;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
-	parameter FRAME_BUFFER_START 	= 16'b1111_0000_0000_0000;
+	parameter FRAME_BUFFER_START 	= 14'b0011_0000_0000_0000;
 	parameter SCREEN_WIDTH 			= 7'b1010000;
 	
 	reg [4:0] state = 0;
@@ -125,8 +125,9 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	always@(*) // paint
 	begin
 		if (bright)
-		begin	
-			rgb = glyph_table[{glyph_num, y, x}];
+		begin
+			// the x and y is the color of the pixel (?)
+			rgb = glyph_table[{2'b0, glyph_num[5:0], y, x}];
 		end
 		else
 		begin
