@@ -12,7 +12,8 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	wire [9:0] hCount;
 	wire [9:0] vCount;
-	wire [7:0] glyph;
+	wire [7:0] glyph_num;
+	wire [2:0] glyph_x, glyph_y;
 	
 	// reg [15:0] addr_in;
 	
@@ -23,19 +24,20 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	VGAControl control (slowClk, reset, hSync, vSync, bright, hCount, vCount);
 		
-	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph);
+	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num);
 	
-	BitGen gen (bright, glyph, hCount, vCount, rgb);
+	BitGen gen (bright, glyph_num, glyph_x, glyph_y, rgb);
 
 endmodule
 
 
-module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
+module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph_x, glyph_y);
 	input clk, reset;
 	input [15:0] mem_out;
-	input [9:0] x, y;
+	input [9:0] h_count, v_count;
 	output reg [15:0] addr_out;
-	output reg [7:0] pixel;
+	output reg [7:0] glyph_num;
+	output reg [2:0] glyph_x, glyph_y;
 	
 	// (0,0) on our display
 	parameter HSTART = 8'b10010000;
@@ -44,71 +46,89 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 	parameter VEND = 511;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
-	reg nextBit = 0;
 	reg [4:0] state = 0;
 	
-	reg [15:0] glyph_addr;
-	reg [12:0] pixel_num;
+	reg [9:0] x, y;
+	//reg [12:0] pixel_num;
+	reg first_byte;
 	
 	always @(posedge clk)
 	begin
 		if (reset)
 		begin
 			state = 5'b0;
-			pixel_num = 12'b00_0000_0000;
+			//pixel_num = 12'b00_0000_0000;
+			first_byte = 1;
 		end
 		
-		if ((x >= HSTART && x < HEND) &&
-			 (y >= VSTART && y < VEND))
+		if ((h_count >= HSTART && h_count < HEND) &&
+			 (v_count >= VSTART && v_count < VEND))
 		begin
-		
-			pixel_num = ((x - HSTART) + 521 * (y - VSTART));
+			
+			x = h_count - HSTART;
+			y = v_count - VSTART;
+			glyph_x = x[2:0];
+			glyph_y = y[2:0];
+			//pixel_num = ((x - HSTART) + 521 * (y - VSTART));
+			//pixel_num = x[9:3] +  * y;
+			//glyph_num = 8'b1111_1010;
 
 			case (state)
 				0:
 				begin
 					// read in the address from the frame buffer
-					addr_out = {6'b1111_00, pixel_num[12:3]};
-					//addr_out = 16'b1111_0000_0101_1010;
+					//addr_out = {6'b1111_00, pixel_num[12:4]};
+					//pixel_num = y*80
+					addr_out = 16'b1111_0000_0000_0000 + (7'b1010000 * y[9:3]) + x[9:3];
 					
 					state = 1;
 				end
 				1:
 				begin
-					// read in the higher 8 bits
-					if (pixel_num[2:0] == 3'b0)
+					if (first_byte)
 					begin
-						glyph_addr = {8'b0, mem_out[15:8]};
-					end
-					addr_out = glyph_addr + pixel_num[2:0];
-					
-					state = 2;
-				end
-				
-				2:
-				begin
-					pixel = mem_out[15:8];
-					
-					state = 3;
-				end
-				3:
-				begin
-					pixel = mem_out[7:0];
-
-					if (pixel_num[2:0] == 3'b111)
-					begin
-						state = 0;
+						glyph_num = mem_out[15:8];
 					end
 					else
 					begin
-						state = 1;
+						glyph_num = mem_out[7:0];
 					end
-				end
-				default:
-				begin
+//					end
+//					addr_out = glyph_num + pixel_num[2:0];
+
+//					if (pixel_num[2:0] == 4'b1111)
+//					begin
+//						first_byte = ~first_byte;
+//					end
+//					
 					state = 0;
-					addr_out = DEFAULT;
 				end
+				
+				
+//				2:
+//				begin
+//					pixel = mem_out[15:8];
+//					
+//					state = 3;
+//				end
+//				3:
+//				begin
+//					pixel = mem_out[7:0];
+//
+//					if (pixel_num[2:0] == 3'b111)
+//					begin
+//						state = 0;
+//					end
+//					else
+//					begin
+//						state = 1;
+//					end
+//				end
+//				default:
+//				begin
+//					state = 0;
+//					addr_out = DEFAULT;
+//				end
 			endcase
 		end	
 	end
@@ -121,11 +141,22 @@ endmodule
 	
 	Glyph graphics - break the screen into chunks
 */
-module BitGen (bright, pixel, hCount, vCount, rgb);
+module BitGen (bright, glyph_num, x, y, rgb);
 	input bright;
-	input [7:0] pixel;
-	input [9:0] hCount, vCount;
+	input [7:0] glyph_num;
+	input [2:0] x, y;
 	output reg [7:0] rgb;
+	
+	reg [7:0] glyph_table[2**14-1:0];
+	
+	initial
+	begin
+		// TODO This file path needs to change for your personal laptop 
+		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
+		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
+		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
+	end
+
 	
 	// First just dipslay vertical bars of each color:
 	parameter BLACK = 8'b000_000_00;
@@ -143,7 +174,7 @@ module BitGen (bright, pixel, hCount, vCount, rgb);
 	begin
 		if (bright)
 		begin	
-			rgb = pixel;
+			rgb = glyph_table[{glyph_num, y, x}];
 		end
 		else
 		begin
