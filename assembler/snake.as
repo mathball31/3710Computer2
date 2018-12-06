@@ -188,9 +188,12 @@ JMP_IMM 0x1000 r14 UC
 @3000
 //#-----Frame_Buffer start-----
 //#initial head_0
-@305A
 INIT
-    FA00
+0000
+@34C4
+FA00
+@395F
+FAFA
 END
 
 //#-----Frame_Buffer end-----

@@ -99,7 +99,9 @@ import sys, traceback
 #TODO
 PROGRAM_START   = int(0x0000)
 PROGRAM_END     = int(0x2000)
-ADDR_END        = int(0xFFFF)
+ADDR_END        = int(0x3FFF)
+
+SREC_OUTPUT     = True
 
 
 
@@ -310,7 +312,11 @@ source_file = open(source_filename, "r")
 dest_file = open(dest_filename, "w")
 
 def write_ins(ins):
-    dest_file.write(ins)
+    if SREC_OUTPUT:
+        dest_file.write(ins[0] + ins[1] + '\n')
+        dest_file.write(ins[2] + ins[3] + '\n')
+    else:
+        dest_file.write(ins)
     set_memory_addr(memory_addr + 1)
 
 print("name of source file: " + source_file.name)
@@ -319,6 +325,8 @@ print("name of dest file: " + dest_file.name)
 
 memory_block = False
 block_comment = 0
+if SREC_OUTPUT:
+    dest_file.write("\n");
 for line in source_file:
     try: 
         line_num += 1
@@ -342,7 +350,8 @@ for line in source_file:
             continue
 
         elif line.strip().startswith("//#"):
-            dest_file.write(line.replace("#", "").lstrip())
+            if not SREC_OUTPUT:
+                dest_file.write(line.replace("#", "").lstrip())
             continue
 
         elif line.strip().startswith("//"):
@@ -350,7 +359,10 @@ for line in source_file:
 
         elif line.strip().startswith("@"):
             set_memory_addr(int(line.replace('@', ''), 16))
-            dest_file.write(line)
+            if SREC_OUTPUT:
+                dest_file.write("$A" + int_to_hex(memory_addr*2) + ",\n")
+            else:
+                dest_file.write(line)
             continue
 
         elif line.strip().startswith("print_addr"):
@@ -462,6 +474,8 @@ for line in source_file:
         traceback.print_exc()
         write_ins("----\n")
 
+if SREC_OUTPUT:
+    dest_file.write('');
 if memory_block:
     error("unmatched INIT")
 
