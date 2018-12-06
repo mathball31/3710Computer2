@@ -65,15 +65,16 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 			 (v_count >= VSTART && v_count < VEND))
 		begin
 			
-			x = h_count - HSTART;
-			y = v_count - VSTART;
-			glyph_x = x[2:0];
-			glyph_y = y[2:0];
+			
 
 
 			case (state)
 				0:
 				begin
+					x = h_count - HSTART;
+					y = v_count - VSTART;
+					glyph_x = x[2:0];
+					glyph_y = y[2:0];
 					// read in the address from the frame buffer
 					addr_out = FRAME_BUFFER_START + (SCREEN_WIDTH * y[9:3]) + x[9:4];
 					
@@ -108,15 +109,15 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	input [2:0] x, y;
 	output reg [7:0] rgb;
 	
-	reg [7:0] glyph_table[2**14-1:0];
+	reg [7:0] glyph_table[2**12-1:0];
 	
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
 		//$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
-		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
+		$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTable.txt", glyph_table);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
-		$readmemh("C:/Users/samfa/OneDrive/Documents/GitHub/3710Computer2/GlyphTable.txt", glyph_table);
+		//$readmemh("C:/Users/samfa/OneDrive/Documents/GitHub/3710Computer2/GlyphTable.txt", glyph_table);
 		
 	end
 	
