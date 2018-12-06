@@ -112,8 +112,8 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
-		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
-		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTable.txt", glyph_table);
+		//$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
+		$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTable.txt", glyph_table);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
 	end
 	
@@ -125,7 +125,7 @@ module BitGen (bright, glyph_num, x, y, rgb);
 		if (bright)
 		begin
 			// the x and y is the color of the pixel (?)
-			rgb = glyph_table[{glyph_num, y, x}];
+			rgb = glyph_table[{2'b0, glyph_num[5:0], y, x}];
 		end
 		else
 		begin

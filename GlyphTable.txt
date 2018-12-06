@@ -1,10 +1,10 @@
 // Memory glyph test
 
 // default memory - has default black color
-@0000 00
+@000 00
 
 // One glyph - green blue
-@3E80
+@E80
 1C
 1C
 1C
