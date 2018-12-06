@@ -109,7 +109,8 @@ macro_ins = {
     "JMP_IMM":      "1",
     "JAL_IMM":      "2",
     "MOV_IMM":      "3",
-    "NOP":          "6"
+    "NOP":          "6",
+    "STOP":         "7"
 }
 
 imm_ins = {
@@ -356,13 +357,13 @@ for line in source_file:
             print("Line number: " + str(line_num) + " Memory Address: " + hex(memory_addr))
             continue
 
-        elif line == "INIT\n":
+        elif line.startswith("INIT"):
             if memory_block:
                 error("unmatched INIT")
             memory_block = True
             continue
 
-        elif line == "END\n":
+        elif line.startswith("END"):
             if not memory_block:
                 error("unmatched END")
             memory_block = False
@@ -450,6 +451,8 @@ for line in source_file:
                 
             elif tokens[0] == "NOP":
                 write_ins(parse_ins("OR r0 r0"))
+            elif tokens[0] == "STOP":
+                write_ins("0000\n")
 
         #normal instruction
         else:
