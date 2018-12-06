@@ -65,15 +65,16 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 			 (v_count >= VSTART && v_count < VEND))
 		begin
 			
-			x = h_count - HSTART;
-			y = v_count - VSTART;
-			glyph_x = x[2:0];
-			glyph_y = y[2:0];
+			
 
 
 			case (state)
 				0:
 				begin
+					x = h_count - HSTART;
+					y = v_count - VSTART;
+					glyph_x = x[2:0];
+					glyph_y = y[2:0];
 					// read in the address from the frame buffer
 					addr_out = FRAME_BUFFER_START + (SCREEN_WIDTH * y[9:3]) + x[9:4];
 					
@@ -108,7 +109,7 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	input [2:0] x, y;
 	output reg [7:0] rgb;
 	
-	reg [7:0] glyph_table[2**14-1:0];
+	reg [7:0] glyph_table[2**12-1:0];
 	
 	initial
 	begin

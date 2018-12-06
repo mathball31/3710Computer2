@@ -54,8 +54,7 @@
 
 // One glyph - green blue for testing
 // Begin at 3E80 = pulling from memory at FA = glyph number
-@3E80
-
+@E80
 1C
 1C
 1C
@@ -3049,7 +3048,6 @@ E0
 1C
 1C
 1C
-
 1C
 1C
 1C
@@ -3058,7 +3056,6 @@ E0
 1C
 1C
 1C
-
 1C
 1C
 1C
@@ -3067,16 +3064,6 @@ E0
 1C
 1C
 1C
-
-1C
-1C
-1C
-00
-00
-1C
-1C
-1C
-
 1C
 1C
 1C
@@ -3085,7 +3072,11 @@ E0
 1C
 1C
 1C
-
+1C
+1C
+1C
+00
+00
 1C
 1C
 1C
@@ -3094,7 +3085,6 @@ E0
 1C
 1C
 1C
-
 1C
 1C
 1C
@@ -3103,7 +3093,9 @@ E0
 1C
 1C
 1C
-
+1C
+1C
+1C
 1C
 1C
 1C

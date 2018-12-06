@@ -20,8 +20,6 @@ module Memory
 		// $readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
 		// $readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/GlyphTest.txt", ram);
 		//$readmemh("C:/Users/samfa/OneDrive/Documents/GitHub/3710Computer2/GlyphTest.txt", ram);
-
-
 	end
 
 	// Port A 
