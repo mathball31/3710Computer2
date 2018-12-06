@@ -24,7 +24,7 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	VGAControl control (slowClk, reset, hSync, vSync, bright, hCount, vCount);
 		
-	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num);
+	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num, glyph_x, glyph_y);
 	
 	BitGen gen (bright, glyph_num, glyph_x, glyph_y, rgb);
 
@@ -46,19 +46,18 @@ module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph
 	parameter VEND = 511;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
+	parameter FRAME_BUFFER_START 	= 16'b1111_0000_0000_0000;
+	parameter SCREEN_WIDTH 			= 7'b1010000;
+	
 	reg [4:0] state = 0;
 	
 	reg [9:0] x, y;
-	//reg [12:0] pixel_num;
-	reg first_byte;
 	
 	always @(posedge clk)
 	begin
 		if (reset)
 		begin
 			state = 5'b0;
-			//pixel_num = 12'b00_0000_0000;
-			first_byte = 1;
 		end
 		
 		if ((h_count >= HSTART && h_count < HEND) &&
@@ -69,23 +68,19 @@ module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph
 			y = v_count - VSTART;
 			glyph_x = x[2:0];
 			glyph_y = y[2:0];
-			//pixel_num = ((x - HSTART) + 521 * (y - VSTART));
-			//pixel_num = x[9:3] +  * y;
-			//glyph_num = 8'b1111_1010;
+
 
 			case (state)
 				0:
 				begin
 					// read in the address from the frame buffer
-					//addr_out = {6'b1111_00, pixel_num[12:4]};
-					//pixel_num = y*80
-					addr_out = 16'b1111_0000_0000_0000 + (7'b1010000 * y[9:3]) + x[9:3];
+					addr_out = FRAME_BUFFER_START + (SCREEN_WIDTH * y[9:3]) + x[9:4];
 					
 					state = 1;
 				end
 				1:
 				begin
-					if (first_byte)
+					if (x[3] == 1'b0)
 					begin
 						glyph_num = mem_out[15:8];
 					end
@@ -93,42 +88,8 @@ module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph
 					begin
 						glyph_num = mem_out[7:0];
 					end
-//					end
-//					addr_out = glyph_num + pixel_num[2:0];
-
-//					if (pixel_num[2:0] == 4'b1111)
-//					begin
-//						first_byte = ~first_byte;
-//					end
-//					
 					state = 0;
 				end
-				
-				
-//				2:
-//				begin
-//					pixel = mem_out[15:8];
-//					
-//					state = 3;
-//				end
-//				3:
-//				begin
-//					pixel = mem_out[7:0];
-//
-//					if (pixel_num[2:0] == 3'b111)
-//					begin
-//						state = 0;
-//					end
-//					else
-//					begin
-//						state = 1;
-//					end
-//				end
-//				default:
-//				begin
-//					state = 0;
-//					addr_out = DEFAULT;
-//				end
 			endcase
 		end	
 	end
@@ -136,7 +97,6 @@ endmodule
 
 
 /*
-	Is a combinational circuit
 	Decides for each pixel what color should be on the screen
 	
 	Glyph graphics - break the screen into chunks
@@ -156,18 +116,8 @@ module BitGen (bright, glyph_num, x, y, rgb);
 		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
 	end
-
 	
-	// First just dipslay vertical bars of each color:
-	parameter BLACK = 8'b000_000_00;
-	parameter BLUE = 8'b000_000_11;
-	parameter GREEN = 8'b000_111_00; 
-	parameter CYAN = 8'b000_111_11;
-	parameter RED = 8'b111_000_00;
-	parameter MAGENTA = 8'b111_000_11;
-	parameter YELLOW = 8'b111_111_00;
-	parameter WHITE = 8'b111_111_11; 
-	
+	parameter BLACK = 8'b0000_0000;
 
 	// there are 640 pixels in a row, and 480 in a column
 	always@(*) // paint
