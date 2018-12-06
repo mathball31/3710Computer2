@@ -1,13 +1,43 @@
-//Start/Init
-//TODO jump to Main loop
+//#---------Start/Init---------
+//Initialize head_0 starting location and direction
+MOV_IMM 0x60FA r2
+/*
+MOV_IMM 0xFE00 r6
+MOV_IMM 0x30FA r7
+STOR r6 r7
 STOP
+*/
+//#print B
+MOV_IMM 0x0C00 r6
+MOV_IMM 0x3028 r7
+STOR r6 r7
+
+//#print H
+MOV_IMM 0x1200 r6
+MOV_IMM 0x3030 r7
+STOR r6 r7
+
+//#JAL
+JAL_IMM 0x0070 r14
+
+//#print F
+MOV_IMM 0x1000 r6
+MOV_IMM 0x3034 r7
+STOR r6 r7
+//#r2 has head_0 initial value
+//#---------End Start/Init---------
 JMP_IMM 0x1000 r14 UC 
 
 //#void set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
 /*
     Sets the glyph at [glyph_ptr].glyph_byte to {dir, glyph_num}
 */
-@100
+@70
+//#show block
+MOV_IMM 0xFE00 r6
+MOV_IMM 0x30FA r7
+STOR r6 r7
+JMP r15 UC
 //put glyph_word in r10
 LOAD r10 r7
 //#head_word is in r10
@@ -35,7 +65,11 @@ JMP_REL 5 r14 NE
     ADD r11 r6
 //#r6 has glyph_word
 //write glyph_word
+/*
+MOV_IMM 0xFE00 r6
+MOV_IMM 0x30FA r7
 STOR r6 r7
+*/
 //#return
 JMP r15 UC
 
@@ -98,11 +132,14 @@ LRSHI 4 r6
 //#call
 //#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
 JAL_IMM 0x0200 r14
+//TODO r6 is hardcoded--fix
+MOVI 3 r6
 //#r6(dir) is snes_dir
 //put head_ptr in r7
 MOV_IMM 0x0FFF r7
 AND r2 r7
-MOV_IMM 0xF000 r14
+//Frame buffer start
+MOV_IMM 0x3000 r14
 ADD r14 r7
 //#r7(glyph_ptr) is head_ptr
 //put head_byte in r8
@@ -118,6 +155,7 @@ MOV_IMM 0x3E r9
 JAL_IMM 0x0100 r14
 //#-----End Write Body-----
     
+/*
 @1016
 //#-----Update head_ptr-----
 //put snes_dir in r6
@@ -179,22 +217,22 @@ MOV_IMM 0x3a r9
 JAL_IMM 0x0100 r14
 //#-----End Write Head-----
 //check overlap
+*/
 
-//Busy wait
+//#Busy wait
+MOVI 0 r6
+MOV_IMM 3790 r7
+ADDI 1 r6
+CMP r7 r6
+JMP_REL -2 r14 LT
+
+
 //#---------End Main Loop---------
 JMP_IMM 0x1000 r14 UC
 
 
 @3000
 //#-----Frame_Buffer start-----
-//#initial head_0
-INIT
-0000
-@34C4
-FA00
-@395F
-FAFA
-END
 
 //#-----Frame_Buffer end-----
 @3960

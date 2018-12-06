@@ -40,16 +40,16 @@ r1: SNES_1
 
 r2: snake_0_head
 r3: snake_1_head
-    [11:0] offset from frame_buffer to head_location
-    [12] head_byte
-        0: low_byte
-        1: high_byte
     [14:13] direction
         NOTE: 14: up/down vs left/right
         00: up
         01: down
         10: left
         11: right
+    [12] head_byte
+        0: low_byte
+        1: high_byte
+    [11:0] offset from frame_buffer to head_location
 
 r4: snake_0_tail
 r5: snake_1_tail
@@ -61,16 +61,16 @@ r15: JAL/Return
 
 Structs lol
 glyph {
-    [8:7] direction to next snake piece in frame_buffer
+    [7:6] direction to next snake piece in frame_buffer
         NOTE: 13: up/down vs left/right
         00: up
         01: down
         10: left
         11: right
-    [6:0] glyph number
-        if [6:4] == 3'b111
+    [5:0] glyph number
+        if [5:3] == 3'b111
             glyph is part of game
-            [3:0] game piece
+            [2:0] game piece
                 000: wall   0x38
                 001: food   0x39
                 010: head_0 0x3a

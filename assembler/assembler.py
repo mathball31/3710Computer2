@@ -1,3 +1,5 @@
+SREC_OUTPUT     = True
+SREC_OUTPUT     = False
 '''
 3710 Assembler
 (Mostly) Follows the CR16 manual on ISA.pdf (linked on the course)
@@ -101,7 +103,6 @@ PROGRAM_START   = int(0x0000)
 PROGRAM_END     = int(0x2000)
 ADDR_END        = int(0x3FFF)
 
-SREC_OUTPUT     = True
 
 
 
@@ -281,9 +282,9 @@ def parse_ins(line):
             code[3] = tokens[1]
         else:
             #dest
-            code[1] = reg_to_hex(tokens[2])
+            code[1] = reg_to_hex(tokens[1])
             #src
-            code[3] = reg_to_hex(tokens[1])
+            code[3] = reg_to_hex(tokens[2])
         #ins low
         code[2] = jmp_ld_str_ins[tokens[0]]
 
@@ -399,7 +400,9 @@ for line in source_file:
                     offset = int(dest, 16)
                 else:
                     offset = int(dest)
-                addr_val = memory_addr + offset + 2
+                addr_val = memory_addr + offset
+                if offset > 0:
+                    addr_val += 2
                 if addr_val < PROGRAM_START or addr_val > PROGRAM_END:
                     error("invalid jump location: " + hex(addr_val))
                 addr = int_to_hex(addr_val)
@@ -445,10 +448,11 @@ for line in source_file:
                 #LUI
                 write_ins(parse_ins("LUI 0x" + addr[0] + addr[1] + " " + reg))
                 #JAL
-                write_ins(parse_ins("JAL " + reg + " " + link))
+                write_ins(parse_ins("JAL " + link + " " + reg))
 
             elif tokens[0] == "MOV_IMM":
                 val = tokens[1]
+                reg = tokens[2]
                 if val.startswith("0x"):
                     val = int(val, 16)
                 else:

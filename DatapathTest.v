@@ -8,11 +8,10 @@ module DatapathTest;
 	reg serial_data = 1;
 	//wire [4:0] flags;
 	//wire [15:0] alu_bus;
-	wire snes_clk;
-	wire data_latch;
-	wire [27:0] display;
+	wire snes_clk, data_latch, hSync, vSync, bright, slowClk;
+	wire [7:0] rgb;
 	
-	Datapath dp(clk, reset, serial_data, snes_clk, data_latch, display);
+	Datapath dp(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bright, rgb, slowClk);
 	
 	initial
 	begin
