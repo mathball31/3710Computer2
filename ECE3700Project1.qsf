@@ -91,6 +91,73 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME SNES_test -section_id SNE
 
 set_global_assignment -name TIMING_ANALYZER_DO_REPORT_TIMING ON
 set_global_assignment -name OPTIMIZATION_MODE BALANCED
+
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_AE27 -to display[1]
+set_location_assignment PIN_AE26 -to display[0]
+set_location_assignment PIN_AE28 -to display[2]
+set_location_assignment PIN_AG27 -to display[3]
+set_location_assignment PIN_AF28 -to display[4]
+set_location_assignment PIN_AG28 -to display[5]
+set_location_assignment PIN_AH28 -to display[6]
+set_location_assignment PIN_AJ29 -to display[7]
+set_location_assignment PIN_AH29 -to display[8]
+set_location_assignment PIN_AH30 -to display[9]
+set_location_assignment PIN_AG30 -to display[10]
+set_location_assignment PIN_AF29 -to display[11]
+set_location_assignment PIN_AF30 -to display[12]
+set_location_assignment PIN_AD27 -to display[13]
+set_location_assignment PIN_AB23 -to display[14]
+set_location_assignment PIN_AE29 -to display[15]
+set_location_assignment PIN_AD29 -to display[16]
+set_location_assignment PIN_AC28 -to display[17]
+set_location_assignment PIN_AD30 -to display[18]
+set_location_assignment PIN_AC29 -to display[19]
+set_location_assignment PIN_AC30 -to display[20]
+set_location_assignment PIN_AD26 -to display[21]
+set_location_assignment PIN_AC27 -to display[22]
+set_location_assignment PIN_AD25 -to display[23]
+set_location_assignment PIN_AC25 -to display[24]
+set_location_assignment PIN_AB28 -to display[25]
+set_location_assignment PIN_AB25 -to display[26]
+set_location_assignment PIN_AB22 -to display[27]
+set_global_assignment -name EDA_TEST_BENCH_FILE memTest.v -section_id memTest
+set_global_assignment -name EDA_TEST_BENCH_FILE DatapathTest.v -section_id DatapathTest
+set_global_assignment -name EDA_TEST_BENCH_FILE ALUtest.v -section_id ALUtest
+set_global_assignment -name EDA_TEST_BENCH_FILE SNES_test.v -section_id SNES_test
+
+set_location_assignment PIN_B11 -to hSync
+set_location_assignment PIN_F13 -to rgb[7]
+set_location_assignment PIN_E12 -to rgb[6]
+set_location_assignment PIN_D12 -to rgb[5]
+set_location_assignment PIN_E11 -to rgb[4]
+set_location_assignment PIN_F11 -to rgb[3]
+set_location_assignment PIN_G12 -to rgb[2]
+set_location_assignment PIN_J14 -to rgb[1]
+set_location_assignment PIN_G15 -to rgb[0]
+set_location_assignment PIN_D11 -to vSync
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hSync
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to vSync
+set_location_assignment PIN_AA14 -to clear
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clear
+set_location_assignment PIN_F10 -to bright
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to bright
+set_location_assignment PIN_A11 -to slowClk
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to slowClk
+
+set_global_assignment -name SOURCE_FILE snake.mem
 set_global_assignment -name SDC_FILE ECE3700Project1.sdc
 set_global_assignment -name TEXT_FILE 14.txt
 set_global_assignment -name VERILOG_FILE regfile_2D_memory.v
@@ -130,72 +197,7 @@ set_global_assignment -name VERILOG_FILE SNES_Wrapper.v
 set_global_assignment -name VERILOG_FILE SNES_test.v
 set_global_assignment -name SOURCE_FILE db/ECE3700Project1.cmp.rdb
 set_global_assignment -name VERILOG_FILE output_files/tb_VGA.v
-
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_location_assignment PIN_AE27 -to display[1]
-set_location_assignment PIN_AE26 -to display[0]
-set_location_assignment PIN_AE28 -to display[2]
-set_location_assignment PIN_AG27 -to display[3]
-set_location_assignment PIN_AF28 -to display[4]
-set_location_assignment PIN_AG28 -to display[5]
-set_location_assignment PIN_AH28 -to display[6]
-set_location_assignment PIN_AJ29 -to display[7]
-set_location_assignment PIN_AH29 -to display[8]
-set_location_assignment PIN_AH30 -to display[9]
-set_location_assignment PIN_AG30 -to display[10]
-set_location_assignment PIN_AF29 -to display[11]
-set_location_assignment PIN_AF30 -to display[12]
-set_location_assignment PIN_AD27 -to display[13]
-set_location_assignment PIN_AB23 -to display[14]
-set_location_assignment PIN_AE29 -to display[15]
-set_location_assignment PIN_AD29 -to display[16]
-set_location_assignment PIN_AC28 -to display[17]
-set_location_assignment PIN_AD30 -to display[18]
-set_location_assignment PIN_AC29 -to display[19]
-set_location_assignment PIN_AC30 -to display[20]
-set_location_assignment PIN_AD26 -to display[21]
-set_location_assignment PIN_AC27 -to display[22]
-set_location_assignment PIN_AD25 -to display[23]
-set_location_assignment PIN_AC25 -to display[24]
-set_location_assignment PIN_AB28 -to display[25]
-set_location_assignment PIN_AB25 -to display[26]
-set_location_assignment PIN_AB22 -to display[27]
-set_global_assignment -name EDA_TEST_BENCH_FILE memTest.v -section_id memTest
-set_global_assignment -name EDA_TEST_BENCH_FILE DatapathTest.v -section_id DatapathTest
-set_global_assignment -name EDA_TEST_BENCH_FILE ALUtest.v -section_id ALUtest
-set_global_assignment -name EDA_TEST_BENCH_FILE SNES_test.v -section_id SNES_test
-
 set_global_assignment -name TEXT_FILE SNEStest.txt
-set_location_assignment PIN_B11 -to hSync
-set_location_assignment PIN_F13 -to rgb[7]
-set_location_assignment PIN_E12 -to rgb[6]
-set_location_assignment PIN_D12 -to rgb[5]
-set_location_assignment PIN_E11 -to rgb[4]
-set_location_assignment PIN_F11 -to rgb[3]
-set_location_assignment PIN_G12 -to rgb[2]
-set_location_assignment PIN_J14 -to rgb[1]
-set_location_assignment PIN_G15 -to rgb[0]
-set_location_assignment PIN_D11 -to vSync
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hSync
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[7]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[6]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[5]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[4]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[3]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[2]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[1]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb[0]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rgb
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to vSync
-set_location_assignment PIN_AA14 -to clear
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clear
-set_location_assignment PIN_F10 -to bright
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to bright
-set_location_assignment PIN_A11 -to slowClk
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to slowClk
-
 set_global_assignment -name TEXT_FILE GlyphTest.txt
+set_global_assignment -name TEXT_FILE GlyphTable.txt
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

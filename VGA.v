@@ -12,7 +12,8 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	wire [9:0] hCount;
 	wire [9:0] vCount;
-	wire [7:0] glyph;
+	wire [7:0] glyph_num;
+	wire [2:0] glyph_x, glyph_y;
 	
 	// reg [15:0] addr_in;
 	
@@ -23,20 +24,20 @@ module VGA (clk, reset, mem_out, hSync, vSync, bright, rgb, slowClk, addr_out);
 
 	VGAControl control (slowClk, reset, hSync, vSync, bright, hCount, vCount);
 		
-	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph);
+	AddrGen ag(slowClk, reset, mem_out, hCount, vCount, addr_out, glyph_num, glyph_x, glyph_y);
 	
-	BitGen gen (bright, glyph, hCount, vCount, rgb);
+	BitGen gen (bright, glyph_num, glyph_x, glyph_y, rgb);
 
 endmodule
 
 
-module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
+module AddrGen(clk, reset, mem_out, h_count, v_count, addr_out, glyph_num, glyph_x, glyph_y);
 	input clk, reset;
 	input [15:0] mem_out;
-	input [9:0] x, y;
-	//input [15:0] addr_in;
+	input [9:0] h_count, v_count;
 	output reg [15:0] addr_out;
-	output reg [7:0] pixel;
+	output reg [7:0] glyph_num;
+	output reg [2:0] glyph_x, glyph_y;
 	
 	// (0,0) on our display
 	parameter HSTART = 8'b10010000;
@@ -45,97 +46,85 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 	parameter VEND = 511;
 	parameter DEFAULT = 16'b0000_0000_0000_0010;
 	
-	reg nextBit = 0;
+	parameter FRAME_BUFFER_START 	= 16'b1111_0000_0000_0000;
+	parameter SCREEN_WIDTH 			= 7'b1010000;
+	
 	reg [4:0] state = 0;
 	
-	reg [15:0] glyph_addr;
-	reg [12:0] pixel_addr;
+	reg [9:0] x, y;
 	
 	always @(posedge clk)
 	begin
 		if (reset)
 		begin
 			state = 5'b0;
-			pixel_addr = 12'b00_0000_0000;
 		end
-		if (x >= HSTART && y >= VSTART && x < HEND && y < VEND)
+		
+		if ((h_count >= HSTART && h_count < HEND) &&
+			 (v_count >= VSTART && v_count < VEND))
 		begin
-		//pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
+			
+			x = h_count - HSTART;
+			y = v_count - VSTART;
+			glyph_x = x[2:0];
+			glyph_y = y[2:0];
+
+
 			case (state)
-				0: 
+				0:
 				begin
-					//addr_out = {6'b1111_00, pixel_addr[12:3]};
+					// read in the address from the frame buffer
+					addr_out = FRAME_BUFFER_START + (SCREEN_WIDTH * y[9:3]) + x[9:4];
 					
-					addr_out = 16'b1111_0000_0101_1010;
 					state = 1;
 				end
-				1: 
+				1:
 				begin
-					glyph_addr = {8'b0, mem_out[15:8]};		// concatenating 0's to eliminate warning
-					state = 2;
-				end
-				2:
-				begin
-					if (pixel_addr >= 12'b1001_0110_0000)
+					if (x[3] == 1'b0)
 					begin
-						pixel_addr = 12'b0;
+						glyph_num = mem_out[15:8];
 					end
 					else
 					begin
-					pixel_addr = pixel_addr + 1'b1;					
+						glyph_num = mem_out[7:0];
 					end
-					
-					addr_out = glyph_addr + pixel_addr[2:0];
-					state = 3;
-				end
-				3: 
-				begin			
-					pixel = mem_out[15:8];
-					if (pixel_addr[2:0] == 3'b111)
-					begin
-						state = 0;
-					end
-					else
-					begin
-						state = 2;
-					end
+					state = 0;
 				end
 			endcase
-		end
-	
+		end	
 	end
 endmodule
 
 
 /*
-	Is a combinational circuit
 	Decides for each pixel what color should be on the screen
 	
 	Glyph graphics - break the screen into chunks
 */
-module BitGen (bright, pixel, hCount, vCount, rgb);
+module BitGen (bright, glyph_num, x, y, rgb);
 	input bright;
-	input [7:0] pixel;
-	input [9:0] hCount, vCount;
+	input [7:0] glyph_num;
+	input [2:0] x, y;
 	output reg [7:0] rgb;
 	
-	// First just dipslay vertical bars of each color:
-	parameter BLACK = 8'b000_000_00;
-	parameter BLUE = 8'b000_000_11;
-	parameter GREEN = 8'b000_111_00; 
-	parameter CYAN = 8'b000_111_11;
-	parameter RED = 8'b111_000_00;
-	parameter MAGENTA = 8'b111_000_11;
-	parameter YELLOW = 8'b111_111_00;
-	parameter WHITE = 8'b111_111_11; 
+	reg [7:0] glyph_table[2**14-1:0];
 	
+	initial
+	begin
+		// TODO This file path needs to change for your personal laptop 
+		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
+		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
+		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
+	end
+	
+	parameter BLACK = 8'b0000_0000;
 
 	// there are 640 pixels in a row, and 480 in a column
 	always@(*) // paint
 	begin
 		if (bright)
 		begin	
-			rgb = pixel;
+			rgb = glyph_table[{glyph_num, y, x}];
 		end
 		else
 		begin

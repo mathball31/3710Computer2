@@ -1,47 +1,24 @@
-// Memory glyph test
-
-// default memory - has default black color
-@0000 0000
-
-// One glyph - green block
-@00FA 1C1C
-1C1C
-1C1C
-FA1C
-1C1C
-1C1C
-DE1C
-1C1C
-1C1C
-1C1C
-101C
-1C1C
-1C1C
-1C1C
-1C1C
-571C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-
-
 @F000
 //-----Frame_Buffer start-----
 //initial head_0
-@F05A
-    FA00
+FAFA
+
+@F100
+FA00
+
+@F200
+FAFA
+
+@F300
+FAFA
+
+@F400
+FAFA
+
+@F500
+FA00
+
+@F600
+FAFA
 //-----Frame_Buffer end-----
 
