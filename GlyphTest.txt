@@ -3,7 +3,7 @@
 // default memory - has default black color
 @0000 0000
 
-// One glyph - green block
+// One glyph - green blue
 @00FA 1C1C
 1C1C
 1C1C
@@ -20,22 +20,23 @@
 1C1C
 1C1C
 1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
-1C1C
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+0303
+
 
 
 @F000

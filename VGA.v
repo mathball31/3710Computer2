@@ -34,7 +34,6 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 	input clk, reset;
 	input [15:0] mem_out;
 	input [9:0] x, y;
-	//input [15:0] addr_in;
 	output reg [15:0] addr_out;
 	output reg [7:0] pixel;
 	
@@ -49,101 +48,69 @@ module AddrGen(clk, reset, mem_out, x, y, addr_out, pixel);
 	reg [4:0] state = 0;
 	
 	reg [15:0] glyph_addr;
-	reg [12:0] pixel_addr;
+	reg [12:0] pixel_num;
 	
 	always @(posedge clk)
 	begin
 		if (reset)
 		begin
 			state = 5'b0;
-			pixel_addr = 12'b00_0000_0000;
+			pixel_num = 12'b00_0000_0000;
 		end
 		
-		pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
 		if ((x >= HSTART && x < HEND) &&
 			 (y >= VSTART && y < VEND))
 		begin
+		
+			pixel_num = ((x - HSTART) + 521 * (y - VSTART));
+
 			case (state)
 				0:
 				begin
-					addr_out = {6'b1111_00, pixel_addr[12:3]};
+					// read in the address from the frame buffer
+					addr_out = {6'b1111_00, pixel_num[12:3]};
 					//addr_out = 16'b1111_0000_0101_1010;
 					
 					state = 1;
 				end
 				1:
 				begin
-					glyph_addr = {8'b0, mem_out[15:8]};
+					// read in the higher 8 bits
+					if (pixel_num[2:0] == 3'b0)
+					begin
+						glyph_addr = {8'b0, mem_out[15:8]};
+					end
+					addr_out = glyph_addr + pixel_num[2:0];
 					
 					state = 2;
 				end
+				
 				2:
 				begin
-					addr_out = glyph_addr + pixel_addr[2:0];
+					pixel = mem_out[15:8];
 					
 					state = 3;
 				end
 				3:
 				begin
-					pixel = mem_out[15:8];
-					if (pixel_addr[2:0] == 3'b111)
+					pixel = mem_out[7:0];
+
+					if (pixel_num[2:0] == 3'b111)
 					begin
 						state = 0;
 					end
 					else
 					begin
-						state = 2;
+						state = 1;
 					end
 				end
+				default:
+				begin
+					state = 0;
+					addr_out = DEFAULT;
+				end
 			endcase
-		end
-		
-		
-//		if (x >= HSTART && y >= VSTART && x < HEND && y < VEND)
-//		begin
-//		//pixel_addr = ((x - HSTART)+6'b101000*(y - VSTART));
-//			case (state)
-//				0: 
-//				begin
-//					//addr_out = {6'b1111_00, pixel_addr[12:3]};
-//					
-//					addr_out = 16'b1111_0000_0101_1010;
-//					state = 1;
-//				end
-//				1: 
-//				begin
-//					glyph_addr = {8'b0, mem_out[15:8]};		// concatenating 0's to eliminate warning
-//					state = 2;
-//				end
-//				2:
-//				begin
-//					if (pixel_addr >= 12'b1001_0110_0000)
-//					begin
-//						pixel_addr = 12'b0;
-//					end
-//					else
-//					begin
-//					pixel_addr = pixel_addr + 1'b1;					
-//					end
-//					
-//					addr_out = glyph_addr + pixel_addr[2:0];
-//					state = 3;
-//				end
-//				3: 
-//				begin			
-//					pixel = mem_out[15:8];
-//					if (pixel_addr[2:0] == 3'b111)
-//					begin
-//						state = 0;
-//					end
-//					else
-//					begin
-//						state = 2;
-//					end
-//				end
-//			endcase
-//		end
-	
+		end	
 	end
 endmodule
 
