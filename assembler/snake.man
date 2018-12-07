@@ -46,10 +46,10 @@ r3: snake_1_head
         01: down
         10: left
         11: right
-    [12] head_byte
-        0: low_byte
-        1: high_byte
-    [11:0] offset from frame_buffer to head_location
+    [12:1] offset from frame_buffer to head_location
+    [0] head_byte
+        0: high_byte
+        1: low_byte
 
 r4: snake_0_tail
 r5: snake_1_tail

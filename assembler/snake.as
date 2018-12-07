@@ -1,6 +1,6 @@
 //#---------Start/Init---------
 //Initialize head_0 starting location and direction
-MOV_IMM 0x60FA r2
+MOV_IMM 0x61F4 r2
 /*
 MOV_IMM 0xFE00 r6
 MOV_IMM 0x30FA r7
@@ -21,7 +21,7 @@ JMP_IMM 0x1000 r14 UC
 LOAD r10 r7
 //#head_word is in r10
 //put low_byte of head_word in r11
-MOVI 0xFF r11
+MOV_IMM 0x00FF r11
 AND r10 r11
 //#low_byte is in r11
 //put high_byte of head_word in r12
@@ -31,18 +31,20 @@ AND r10 r12
 //set direction and glyph number of glyph
 //put glyph in r6
 LLSHI 6 r6
-ADD r9 r6
+OR r9 r6
 //#r6 has glyph
 //calculate glyph_word, put in r6
-CMPI 0 r8
+CMPI 1 r8
 // handle high vs low byte
-JMP_REL 5 r14 NE
+JMP_REL 7 r14 NE
     //glyph is in low_byte
-    ADD r12 r6
+    MOVI 0xFF r8
+    AND r8 r6
+    OR r12 r6
     JMP_REL 3 r14 UC
 //glyph is in high_byte
     LLSHI 8 r6
-    ADD r11 r6
+    OR r11 r6
 //#r6 has glyph_word
 //write glyph_word
 STOR r6 r7
@@ -89,8 +91,6 @@ JMP r15 UC
     gets a new value of the head given a copy of the old one and the direction to move
     */
 @300
-//TODO r6 is hardcoded
-MOV_IMM 0x8 r6
 CMPI 0x1 r6
 JMP_REL 2 r14 NE
     //#r6 == 1, SNES is up
@@ -107,13 +107,9 @@ JMP_REL 2 r14 NE
     SUBI 1 r7
 //#r6 != 4
 CMPI 0x8 r6
-JMP_REL 7 r14 NE
+JMP_REL 2 r14 NE
     //#r6 == 8, SNES is right
     ADDI 1 r7
-    MOV_IMM 0x0400 r11
-    MOV_IMM 0x302d r12
-    STOR r11 r12
-print_addr
 JMP r15 UC
 
 
@@ -151,16 +147,16 @@ STOR r6 r7
 */
 //#r6(dir) is snes_dir
 //put head_ptr in r7
-MOV_IMM 0x0FFF r7
+MOV_IMM 0x1FFE r7
 AND r2 r7
+LRSHI 1 r7
 //Frame buffer start
 MOV_IMM 0x3000 r14
 ADD r14 r7
 //#r7(glyph_ptr) is head_ptr
 //put head_byte in r8
-MOV_IMM 0x1000 r8
+MOV_IMM 0x0001 r8
 AND r2 r8
-LRSHI 12 r8
 //#r8(glyph_byte) is head_byte
 //put glyph.body_0 in r9
 MOV_IMM 0x3E r9
@@ -187,23 +183,10 @@ MOV r2 r7
 //#r7 has a copy of r2
 //#call
 //#r7(new_head) update_head(r6(dir), r7(head_copy))
-//TODO r6 is hardcoded
-//MOV_IMM 0x8 r6
 JAL_IMM 0x300 r14
 //update r2
 MOV r7 r2
 //#r2 has a new value
-
-//get offset from snake_0_head
-/*
-MOV_IMM 0x0FFF r7
-MOV_IMM 0xF000 r8
-AND r2 r7
-AND r2 r8
-ADDI 1 r7
-ADD r7 r8
-MOV r8 r2
-*/
 //#-----End Update head_ptr-----
 
 
@@ -223,16 +206,16 @@ MOV_IMM 0x3028 r12
 STOR r11 r12
 //#r6(dir) is 2bit snes_dir
 //put head_ptr in r7
-MOV_IMM 0x0FFF r7
+MOV_IMM 0x1FFE r7
 AND r2 r7
+LRSHI 1 r7
 //Frame buffer start
 MOV_IMM 0x3000 r14
 ADD r14 r7
 //#r7(glyph_ptr) is head_ptr
 //put head_byte in r8
-MOV_IMM 0x1000 r8
+MOV_IMM 0x0001 r8
 AND r2 r8
-LRSHI 12 r8
 //#r8(glyph_byte) is head_byte
 //put glyph.body_0 in r9
 MOV_IMM 0x3A r9
