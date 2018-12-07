@@ -1,5 +1,5 @@
 SREC_OUTPUT     = True
-SREC_OUTPUT     = False
+#SREC_OUTPUT     = False
 '''
 3710 Assembler
 (Mostly) Follows the CR16 manual on ISA.pdf (linked on the course)

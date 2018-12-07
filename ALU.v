@@ -72,7 +72,7 @@ module ALU(dest, src, opcode, carry_in, flags, out);
 	always @(dest, src, opcode, carry_in)
 	begin
 		out = 16'bx;
-		flags = 5'bx;
+		flags = flags;
 		// check opcode high
 		case (opcode[15:12])
 			R_TO_R:
