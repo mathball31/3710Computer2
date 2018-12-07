@@ -68,7 +68,7 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 				0:
 				begin
 					x = h_count - HSTART;
-					y = v_count - VSTART;
+					y = v_count - VSTART + 1;
 					glyph_x = x[2:0];
 					glyph_y = y[2:0];
 
