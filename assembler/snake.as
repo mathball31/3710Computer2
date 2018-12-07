@@ -91,22 +91,22 @@ JMP r15 UC
     gets a new value of the head given a copy of the old one and the direction to move
     */
 @300
-CMPI 0x1 r6
+CMPI 0x0 r6
 JMP_REL 2 r14 NE
     //#r6 == 1, SNES is up
     SUBI 80 r7
 //#r6 != 1
-CMPI 0x2 r6
+CMPI 0x1 r6
 JMP_REL 2 r14 NE
     //#r6 == 2, SNES is down
     ADDI 80 r7
 //#r6 != 2
-CMPI 0x4 r6
+CMPI 0x2 r6
 JMP_REL 2 r14 NE
     //#r6 == 4, SNES is left
     SUBI 1 r7
 //#r6 != 4
-CMPI 0x8 r6
+CMPI 0x3 r6
 JMP_REL 2 r14 NE
     //#r6 == 8, SNES is right
     ADDI 1 r7
@@ -128,24 +128,15 @@ SNES 0 r0
     moves head_ptr
     write new head at head_ptr
 */
+
     
 
 //#-----Write Body-----
-//put snes_dir in r6
-MOVI 0xF0 r6
-AND r0 r6
-LRSHI 4 r6
-//#call
-//#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
-JAL_IMM 0x0200 r14
-//#show 4bit_to_2bit returns
-//'0'
-/*
-MOV_IMM 0x0100 r6
-MOV_IMM 0x3028 r7
-STOR r6 r7
-*/
-//#r6(dir) is snes_dir
+//put snake_dir in r6
+MOV_IMM 0x6000 r6
+AND r2 r6
+LRSHI 13 r6
+//#r6(dir) is snake_dir
 //put head_ptr in r7
 MOV_IMM 0x1FFE r7
 AND r2 r7
@@ -173,11 +164,11 @@ STOR r6 r7
     
 print_addr
 //#-----Update head_ptr-----
-//put snes_dir in r6
-MOVI 0xF0 r6
-AND r0 r6
-LRSHI 4 r6
-//#r6 has 4_bit snes_dir
+//put snake_dir in r6
+MOV_IMM 0x6000 r6
+AND r2 r6
+LRSHI 13 r6
+//#r6 has 2_bit snake_dir
 //copy r2 into r7
 MOV r2 r7
 //#r7 has a copy of r2
@@ -193,18 +184,10 @@ MOV r7 r2
 print_addr
 //#-----Write Head-----
 //put snes_dir in r6
-MOVI 0xF0 r6
-AND r0 r6
-LRSHI 4 r6
-//#call
-//#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
-JAL_IMM 0x0200 r14
-//#show 4bit_to_2bit returns
-//'0'
-MOV_IMM 0x0100 r11
-MOV_IMM 0x3028 r12
-STOR r11 r12
-//#r6(dir) is 2bit snes_dir
+MOV_IMM 0x6000 r6
+AND r2 r6
+LRSHI 13 r6
+//#r6(dir) is 2bit snake_dir
 //put head_ptr in r7
 MOV_IMM 0x1FFE r7
 AND r2 r7

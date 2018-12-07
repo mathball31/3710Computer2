@@ -14,6 +14,11 @@ Usage:
     but the file will still likely compile.
     *** PLEASE RESOLVE ERRORS OR YOU WILL BE SAD***
 
+    srec_cat snake.mem -Ascii_Hex -O ../snake.mif --Memory_Initialization_File 16
+
+    will output snake.mif, which will be loaded directly to the board, 
+    letting us skip Compilation. Now we only need to update memory and assemble
+
 If there is any output except "name of source file" and "name of dest f
 
 Commands take the following possible forms:
