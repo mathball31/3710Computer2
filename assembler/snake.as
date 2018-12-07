@@ -36,13 +36,43 @@ OR r9 r6
 //calculate glyph_word, put in r6
 CMPI 1 r8
 // handle high vs low byte
-JMP_REL 7 r14 NE
+JMP_REL 21 r14 NE
     //glyph is in low_byte
+    //check r11
+    MOVI 0x38 r10
+    AND r11 r10
+    XORI 0x38 r10
+    //#r10 has !game_glyph
+    CMPI 0 r10
+    JMP_REL 6 r14 NE
+        //overlapped
+        //TODO
+        MOV_IMM 0x1 r13
+        JMP_REL 3 r14 UC
+    //no overlap
+    MOV_IMM 0x0 r13
+
     MOVI 0xFF r8
     AND r8 r6
     OR r12 r6
-    JMP_REL 3 r14 UC
+    JMP_REL 19 r14 UC
 //glyph is in high_byte
+    //check r12
+    MOVI 0x38 r10
+    MOV r12 r14
+    LRSHI 8 r14
+    AND r14 r10
+    XORI 0x38 r10
+    //#r10 has !game_glyph
+    CMPI 0 r10
+    JMP_REL 6 r14 NE
+        //overlapped
+        //TODO
+        MOV_IMM 0x1 r13
+        JMP_REL 3 r14 UC
+    //no overlap
+    MOV_IMM 0x0 r13
+
     LLSHI 8 r6
     OR r11 r6
 //#r6 has glyph_word
@@ -88,32 +118,6 @@ JMP_REL 3 r14 EQ
     MOVI 0x00 r6
     JMP r15 UC
 JMP r15 UC
-
-/*
-CMPI 0x1 r6
-JMP_REL 3 r14 NE
-    //#r6 == 1
-    MOVI 0x00 r6
-    JMP r15 UC
-//#r6 != 1
-CMPI 0x2 r6
-JMP_REL 3 r14 NE
-    //#r6 == 2
-    MOVI 0x01 r6
-    JMP r15 UC
-//#r6 != 2
-CMPI 0x4 r6
-JMP_REL 3 r14 NE
-    //#r6 == 4
-    MOVI 0x10 r6
-    JMP r15 UC
-//#r6 != 4
-CMPI 0x8 r6
-JMP_REL 2 r14 NE
-    //#r6 == 8
-    MOVI 0x11 r6
-//#return
-*/
 JMP r15 UC
 
 
@@ -122,69 +126,6 @@ JMP r15 UC
     gets a new value of the head given a copy of the old one and the direction to move
     */
 @300
-//MOVI 1 r8
-//AND r6 r8
-//#r8 is low bit
-//LRSHI 1 r6
-//#r6 is high bit
-//MOV r8 r9
-//OR r6 r9
-/*
-//#r9 is r6 || r8
-CMPI 0 r9
-JMP_REL 8 r14 NE
-    //#!r6 && !r8, SNES is up
-    //'0'
-    MOV_IMM 0x0100 r9
-    MOV_IMM 0x3040 r10
-    STOR r9 r10
-    SUBI 80 r7
-    JMP r15 UC
-//#r6 != 0
-MOV r8 r9
-
-MOV r6 r9
-XORI 1 r9
-AND r8 r9
-//#r9 is !r6 && r8
-CMPI 0 r9
-JMP_REL 8 r14 EQ
-    //#!r6 && r8, SNES is down
-    //'1'
-    MOV_IMM 0x0200 r9
-    MOV_IMM 0x3040 r10
-    STOR r9 r10
-    ADDI 80 r7
-    JMP r15 UC
-//#r6 != 1
-MOV r8 r9
-XORI 1 r9
-AND r6 r9
-//#r9 is r6 && !r8
-CMPI 0 r9
-JMP_REL 7 r14 EQ
-    //#r6 && !r8, SNES is left
-
-    //'2'
-    MOV_IMM 0x0300 r9
-    MOV_IMM 0x3040 r10
-    STOR r9 r10
-    SUBI 1 r7
-    JMP r15 UC
-//#r6 != 2
-MOV r8 r9
-AND r6 r9
-//r9 has r6 && r8
-CMPI 0 r9
-JMP_REL 8 r14 EQ
-    //#r6&&r8, SNES is right
-    //'3'
-    MOV_IMM 0x0400 r9
-    MOV_IMM 0x3040 r10
-    STOR r9 r10
-    ADDI 1 r7
-    JMP r15 UC
-    */
 CMPI 0x00 r6
 JMP_REL 8 r14 NE
     //#r6 == 0, SNES is up
@@ -264,6 +205,7 @@ JMP r15 UC
 SNES 0 r0
 //#r0 has SNES_0
 
+//-----Set Direction-----
 //if snes0 has direction input, call function
 MOV_IMM 0x00F0 r6
 AND r0 r6
@@ -292,6 +234,7 @@ JMP_REL 17 r14 EQ
     MOV r7 r2
     //#r2 has new direction
     //r6 == 0
+//#-----End Set Direction-----
 
     
 
@@ -350,7 +293,6 @@ MOV r7 r2
 //#r2 has a new value
 //#-----End Update head_ptr-----
 
-
 //#-----Write Head-----
 //put snes_dir in r6
 MOV_IMM 0x6000 r6
@@ -381,15 +323,27 @@ MOV_IMM 0x0300 r6
 MOV_IMM 0x302b r7
 STOR r6 r7
 //#-----End Write Head-----
-//check overlap
+
+//#-----Overlap-----
+
+CMPI 0 r13
+JMP_REL 2 r14 EQ
+    //overlap
+    STOP
+
+//#-----End Overlap-----
+
 
 //#Busy wait
 MOVI 0 r6
 MOV_IMM 37900 r7
 ADDI 1 r6
 NOP
+NOP
+NOP
+NOP
 CMP r7 r6
-JMP_REL -3 r14 LT
+JMP_REL -6 r14 LT
 
 
 //#---------End Main Loop---------
