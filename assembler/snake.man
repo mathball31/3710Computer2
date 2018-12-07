@@ -6,14 +6,12 @@ Start of code: 0x000
 
 End of code:
 
-Start of Frame_buffer:  0xF000
-End of Frame_buffer:    0xF960
-
-Start of Glyphs:
-End of Gylphs:
+Start of Frame_buffer:  0x3000
+End of Frame_buffer:    0x3960
 
 
-End of memory: 0xFFFF
+Start of variable memory: 0x3F00
+End of memory: 0x3FFF
 
 
 Size of screen: 60x80
@@ -55,7 +53,14 @@ r4: snake_0_tail
 r5: snake_1_tail
     [12:0] offset from board_start
 
+r6: snake_0_direction
 
+
+r13: Overlap register
+    [3:2] tail_dir
+    [1:0] snake_0 overlap
+        0: bad
+        1: food
 r14: JMP_IMM/JMP_REL
 r15: JAL/Return
 
