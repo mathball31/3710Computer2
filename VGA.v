@@ -64,18 +64,15 @@ module AddrGen #(parameter ADDR_WIDTH=16) (clk, reset, mem_out, h_count, v_count
 		if ((h_count >= HSTART && h_count < HEND) &&
 			 (v_count >= VSTART && v_count < VEND))
 		begin
-			
-			
-
-
 			case (state)
 				0:
 				begin
 					x = h_count - HSTART;
-					y = v_count - VSTART;
+					y = v_count - VSTART + 1;
 					glyph_x = x[2:0];
 					glyph_y = y[2:0];
-					// read in the address from the frame buffer
+
+					// read in the address from the frame buffer 
 					addr_out = FRAME_BUFFER_START + (SCREEN_WIDTH * y[9:3]) + x[9:4];
 					
 					state = 1;
@@ -114,7 +111,7 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
-		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable_hacked.txt", glyph_table);
+		$readmemh("C:/Users/dirkl/3710Computer2/GlyphTable.txt", glyph_table);
 		//$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
 		//$readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/14.txt", ram);
 		//$readmemh("C:/Users/samfa/OneDrive/Documents/GitHub/3710Computer2/GlyphTable.txt", glyph_table);
@@ -128,7 +125,6 @@ module BitGen (bright, glyph_num, x, y, rgb);
 	begin
 		if (bright)
 		begin
-			// the x and y is the color of the pixel (?)
 			rgb = glyph_table[{glyph_num[5:0], y, x}];
 		end
 		else
