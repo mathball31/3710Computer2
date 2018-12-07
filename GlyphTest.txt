@@ -5,8 +5,12 @@
 
 // one row is roughly 28 addresses - skip a row for looks
 @3028
-0000
-3e00
+001a
+0016
+000b
+0023
+000b
+003e
 
 // starting a wall
 @3078
