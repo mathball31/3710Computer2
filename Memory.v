@@ -11,14 +11,15 @@ module Memory
 	output reg [(DATA_WIDTH-1):0] q_a, q_b;
 
 	// Declare the RAM variable
-	(* ram_init_file = "C:/Users/dirkl/3710Computer2/snake.mif" *)reg [DATA_WIDTH-1:0] ram[2**ADDR_WIDTH-1:0];
+	//(* ram_init_file = "C:/Users/dirkl/3710Computer2/snake.mif" *)reg [DATA_WIDTH-1:0] ram[2**ADDR_WIDTH-1:0];
+	reg [DATA_WIDTH-1:0] ram[2**ADDR_WIDTH-1:0];
 	
 	//only use for simulation
 	initial
 	begin
 		// TODO This file path needs to change for your personal laptop 
 		//$readmemh("C:/Users/dirkl/3710Computer2/assembler/snake.mem", ram);
-		// $readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
+		$readmemh("C:/Users/sator/Documents/CS3710/3710Computer2/GlyphTest.txt", ram);
 		// $readmemh("C:/Users/Michelle/Documents/GitHub/3710Computer2/GlyphTest.txt", ram);
 		//$readmemh("C:/Users/samfa/OneDrive/Documents/GitHub/3710Computer2/GlyphTest.txt", ram);
 	end
