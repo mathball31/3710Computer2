@@ -243,7 +243,7 @@ MOVI 2 r9
 AND r6 r9
 //#r9 is orientation bit of snes
 CMP r8 r9
-JMP_IMM 2 r14 NE
+JMP_REL 2 r14 NE
     //#r8 == r9
     // return snake direction
     MOV r7 r6
@@ -263,16 +263,6 @@ JMP r15 UC
 //read controllers
 SNES 0 r0
 //#r0 has SNES_0
-//move
-/*
-    done: writes body segment at head_ptr with pointer to new head
-    moves head_ptr
-    write new head at head_ptr
-*/
-
-//set dir in r2
-//if r2 snes0 parallel do nothing || snes0 has no direction
-//if r2 snes0 perpendicular set r2
 
 //if snes0 has direction input, call function
 MOV_IMM 0x00F0 r6
@@ -292,8 +282,7 @@ JMP_REL 17 r14 EQ
     //#r7 has 2bit snake_dir
     //#call
     //#r6(2bit new_dir) get_dir(r6(2bit snes_dir), r7(2bit snake_dir))
-    //TODO
-    //JAL_IMM 0x400 r14
+    JAL_IMM 0x400 r14
     //#r6 has 2bit new_snake_dir
     MOV_IMM 0x9FFF r7
     AND r2 r7
