@@ -1,0 +1,23 @@
+//MOVI 0x40 r1
+//#JAL_IMM 0x0100
+JAL_IMM 0x0100 r14
+//#print A
+MOV_IMM 0x0B00 r6
+MOV_IMM 0x3030 r7
+STOR r6 r7
+
+STOP
+
+//#print H
+MOV_IMM 0x1200 r6
+MOV_IMM 0x3032 r7
+STOR r6 r7
+
+
+@0100
+//#print B
+MOV_IMM 0x0C00 r6
+MOV_IMM 0x3034 r7
+STOR r6 r7
+JMP r15 UC
+
