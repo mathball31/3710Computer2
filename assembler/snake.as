@@ -19,7 +19,7 @@ JMP_IMM 0x1000 r14 UC
 @100
 //put glyph_word in r10
 LOAD r10 r7
-//#head_word is in r10
+//#glyph_word is in r10
 //put low_byte of head_word in r11
 MOV_IMM 0x00FF r11
 AND r10 r11
@@ -59,30 +59,61 @@ JMP r15 UC
     returns a direction in 2 bit form
 */
 @200
+MOV r6 r7
+ANDI 8 r7
+CMPI 0 r7
+JMP_REL 3 r14 EQ
+    //#move right
+    MOVI 0x03 r6
+    JMP r15 UC
+MOV r6 r7
+ANDI 4 r7
+CMPI 0 r7
+JMP_REL 3 r14 EQ
+    //#move left
+    MOVI 0x02 r6
+    JMP r15 UC
+MOV r6 r7
+ANDI 2 r7
+CMPI 0 r7
+JMP_REL 3 r14 EQ
+    //#move Down
+    MOVI 0x01 r6
+    JMP r15 UC
+MOV r6 r7
+ANDI 1 r7
+CMPI 0 r7
+JMP_REL 3 r14 EQ
+    //#move up
+    MOVI 0x00 r6
+    JMP r15 UC
+JMP r15 UC
+
+/*
 CMPI 0x1 r6
-JMP_REL 5 r14 NE
+JMP_REL 3 r14 NE
     //#r6 == 1
     MOVI 0x00 r6
-    JMP_IMM 0x21d r14 UC
+    JMP r15 UC
 //#r6 != 1
 CMPI 0x2 r6
-JMP_REL 5 r14 NE
+JMP_REL 3 r14 NE
     //#r6 == 2
     MOVI 0x01 r6
-    JMP_IMM 0x21d r14 UC
+    JMP r15 UC
 //#r6 != 2
 CMPI 0x4 r6
-JMP_REL 5 r14 NE
+JMP_REL 3 r14 NE
     //#r6 == 4
     MOVI 0x10 r6
-    JMP_IMM 0x21d r14 UC
+    JMP r15 UC
 //#r6 != 4
 CMPI 0x8 r6
 JMP_REL 2 r14 NE
     //#r6 == 8
     MOVI 0x11 r6
-@21d
 //#return
+*/
 JMP r15 UC
 
 
@@ -91,25 +122,135 @@ JMP r15 UC
     gets a new value of the head given a copy of the old one and the direction to move
     */
 @300
-CMPI 0x0 r6
-JMP_REL 2 r14 NE
-    //#r6 == 1, SNES is up
+//MOVI 1 r8
+//AND r6 r8
+//#r8 is low bit
+//LRSHI 1 r6
+//#r6 is high bit
+//MOV r8 r9
+//OR r6 r9
+/*
+//#r9 is r6 || r8
+CMPI 0 r9
+JMP_REL 8 r14 NE
+    //#!r6 && !r8, SNES is up
+    //'0'
+    MOV_IMM 0x0100 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
     SUBI 80 r7
-//#r6 != 1
-CMPI 0x1 r6
-JMP_REL 2 r14 NE
-    //#r6 == 2, SNES is down
+    JMP r15 UC
+//#r6 != 0
+MOV r8 r9
+
+MOV r6 r9
+XORI 1 r9
+AND r8 r9
+//#r9 is !r6 && r8
+CMPI 0 r9
+JMP_REL 8 r14 EQ
+    //#!r6 && r8, SNES is down
+    //'1'
+    MOV_IMM 0x0200 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
     ADDI 80 r7
-//#r6 != 2
-CMPI 0x2 r6
-JMP_REL 2 r14 NE
-    //#r6 == 4, SNES is left
+    JMP r15 UC
+//#r6 != 1
+MOV r8 r9
+XORI 1 r9
+AND r6 r9
+//#r9 is r6 && !r8
+CMPI 0 r9
+JMP_REL 7 r14 EQ
+    //#r6 && !r8, SNES is left
+
+    //'2'
+    MOV_IMM 0x0300 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
     SUBI 1 r7
-//#r6 != 4
-CMPI 0x3 r6
-JMP_REL 2 r14 NE
-    //#r6 == 8, SNES is right
+    JMP r15 UC
+//#r6 != 2
+MOV r8 r9
+AND r6 r9
+//r9 has r6 && r8
+CMPI 0 r9
+JMP_REL 8 r14 EQ
+    //#r6&&r8, SNES is right
+    //'3'
+    MOV_IMM 0x0400 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
     ADDI 1 r7
+    JMP r15 UC
+    */
+CMPI 0x00 r6
+JMP_REL 8 r14 NE
+    //#r6 == 0, SNES is up
+    //'0'
+    MOV_IMM 0x0100 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
+    SUBI 80 r7
+    JMP r15 UC
+//#r6 != 0
+CMPI 0x01 r6
+JMP_REL 8 r14 NE
+    //#r6 == 1, SNES is down
+    //'1'
+    MOV_IMM 0x0200 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
+    ADDI 80 r7
+    JMP r15 UC
+//#r6 != 1
+CMPI 0x02 r6
+JMP_REL 8 r14 NE
+    //#r6 == 2, SNES is left
+    //'2'
+    MOV_IMM 0x0300 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
+    SUBI 1 r7
+    JMP r15 UC
+//#r6 != 2
+CMPI 0x03 r6
+JMP_REL 8 r14 NE
+    //#r6 == 3, SNES is right
+    //'3'
+    MOV_IMM 0x0400 r9
+    MOV_IMM 0x3040 r10
+    STOR r9 r10
+    ADDI 1 r7
+    JMP r15 UC
+//#r6 != 8, something is wrong
+//'A'
+MOV_IMM 0x0B00 r9
+MOV_IMM 0x3035 r10
+STOR r9 r10
+JMP r15 UC
+
+//#r6(2bit new_dir) get_dir(r6(2bit snes_dir), r7(2bit snake_dir))
+/*
+    returns the direction of snake after a button press
+    */
+@400
+MOVI 2 r8
+AND r7 r8
+//#r8 is orientation bit of snake
+MOVI 2 r9
+AND r6 r9
+//#r9 is orientation bit of snes
+CMP r8 r9
+JMP_IMM 2 r14 NE
+    //#r8 == r9
+    // return snake direction
+    MOV r7 r6
+//#r8 != r9
+//return snes direction
+//r6 already has snes direction
+//#return
 JMP r15 UC
 
 
@@ -128,6 +269,40 @@ SNES 0 r0
     moves head_ptr
     write new head at head_ptr
 */
+
+//set dir in r2
+//if r2 snes0 parallel do nothing || snes0 has no direction
+//if r2 snes0 perpendicular set r2
+
+//if snes0 has direction input, call function
+MOV_IMM 0x00F0 r6
+AND r0 r6
+LRSHI 4 r6
+CMPI 0 r6
+JMP_REL 17 r14 EQ
+    //r6 != 0
+    //#call
+    //#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
+    JAL_IMM 0x200 r14
+    //#r6 has 2bit snes dir
+    //put 2bit snake_dir in r7
+    MOV_IMM 0x6000 r7
+    AND r2 r7
+    LRSHI 13 r7
+    //#r7 has 2bit snake_dir
+    //#call
+    //#r6(2bit new_dir) get_dir(r6(2bit snes_dir), r7(2bit snake_dir))
+    //TODO
+    //JAL_IMM 0x400 r14
+    //#r6 has 2bit new_snake_dir
+    MOV_IMM 0x9FFF r7
+    AND r2 r7
+    //put dir in correct spot for r2
+    LLSHI 13 r6
+    OR r6 r7
+    MOV r7 r2
+    //#r2 has new direction
+    //r6 == 0
 
     
 
@@ -157,9 +332,9 @@ MOV_IMM 0x3E r9
 JAL_IMM 0x0100 r14
 //#check that set_glyph returns
 //'1'
-MOV_IMM 0x0200 r6
-MOV_IMM 0x302a r7
-STOR r6 r7
+MOV_IMM 0x0200 r10
+MOV_IMM 0x302a r11
+STOR r10 r11
 //#-----End Write Body-----
     
 print_addr
@@ -167,21 +342,26 @@ print_addr
 //put snake_dir in r6
 MOV_IMM 0x6000 r6
 AND r2 r6
+MOV r6 r8
+//#r8 has snake_dir
 LRSHI 13 r6
 //#r6 has 2_bit snake_dir
-//copy r2 into r7
-MOV r2 r7
+//put offset into r7
+MOV_IMM 0x1FFF r7
+AND r2 r7
 //#r7 has a copy of r2
 //#call
-//#r7(new_head) update_head(r6(dir), r7(head_copy))
+//#r7(new_head location) update_head(r6(dir), r7(head_copy))
 JAL_IMM 0x300 r14
 //update r2
+MOV_IMM 0x1FFF r9
+AND r9 r7
+OR r8 r7
 MOV r7 r2
 //#r2 has a new value
 //#-----End Update head_ptr-----
 
 
-print_addr
 //#-----Write Head-----
 //put snes_dir in r6
 MOV_IMM 0x6000 r6
