@@ -15,6 +15,7 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 	wire [15:0] mux_out;
 	reg [4:0] state;
 	reg [15:0] instruction;
+	reg [ADDR_WIDTH-1:0] old_pc;
 	
 	parameter RESET		= 5'b00000;
 	parameter FETCH_1 	= 5'b00001;
@@ -287,11 +288,13 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 			begin
 				pc_ld = 1'b1;
 				pc_en = 1'b1;
-				mux_A_sel = instruction[3:0];					
+				mux_A_sel = instruction[3:0];
+				
+				old_pc = pc_ins;
 				
 				// Set low byte of register to low byte of pc
 				// MOVI pc_ins[7:0] r[instruction[11:8]]
-				instruction = {4'b1101, instruction[11:8], pc_ins[7:0]};
+				instruction = {4'b1101, instruction[11:8], old_pc[7:0]};
 				state = JAL_2;
 			end
 			
@@ -312,7 +315,7 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 			begin
 				// set high byte of register to high byte of pc
 				// LUI pc_ins[9:8] r[instruction[11:8]]
-				instruction = {4'b1111, instruction[11:8], {(16-ADDR_WIDTH){1'b0}}, pc_ins[ADDR_WIDTH-1:8]};
+				instruction = {4'b1111, instruction[11:8], {(16-ADDR_WIDTH){1'b0}}, old_pc[ADDR_WIDTH-1:8]};
 				state = R_TYPE;
 			end
 			
