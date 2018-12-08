@@ -58,17 +58,20 @@ OR r9 r6
 CMPI 1 r8
 // handle high vs low byte
 //TODO
-JMP_REL 25 r14 NE
+JMP_IMM 0x12e r14 NE
     //glyph is in low_byte
     //check r11
-    MOVI 0x38 r10
+    MOVI 0x39 r10
     AND r11 r10
     XORI 0x38 r10
     //#r10 has !game_glyph
+    CMPI 1 r10
+    JMP_REL 6 r14 NE
+        MOV_IMM 0x2 r13
+        JMP_REL 12 r14 UC
     CMPI 0 r10
     JMP_REL 6 r14 NE
         //overlapped
-        //TODO
         MOV_IMM 0x1 r13
         JMP_REL 3 r14 UC
     //no overlap
@@ -84,19 +87,24 @@ JMP_REL 25 r14 NE
     MOVI 0xFF r8
     AND r8 r6
     OR r12 r6
-    JMP_REL 24 r14 UC
+    //was 24
+    JMP_IMM 0x14e r14 UC
+    print_addr
 //glyph is in high_byte
     //check r12
-    MOVI 0x38 r10
+    MOVI 0x39 r10
     MOV r12 r14
     LRSHI 8 r14
     AND r14 r10
     XORI 0x38 r10
     //#r10 has !game_glyph
+    CMPI 1 r10
+    JMP_REL 6 r14 NE
+        MOV_IMM 0x2 r13
+        JMP_REL 12 r14 UC
     CMPI 0 r10
     JMP_REL 6 r14 NE
         //overlapped
-        //TODO
         MOV_IMM 0x1 r13
         JMP_REL 3 r14 UC
     //no overlap
@@ -111,6 +119,7 @@ JMP_REL 25 r14 NE
 
     LLSHI 8 r6
     OR r11 r6
+    print_addr
 //#r6 has glyph_word
 //write glyph_word
 STOR r6 r7
@@ -338,10 +347,19 @@ JAL_IMM 0x0100 r14
 
 MOVI 0x3 r6
 AND r6 r13
-CMPI 0 r13
+MOVI 0x1 r7
+AND r13 r7
+CMPI 0 r7
 JMP_REL 2 r14 EQ
     //overlap
     STOP
+
+MOVI 0x2 r7
+AND r13 r7
+CMPI 0 r13
+//skip tail if we ate food
+JMP_IMM 0x1090 r14 NE
+
 
 //#-----End Overlap-----
 //#-----Get tail dir-----
@@ -405,7 +423,7 @@ JAL_IMM 0x300 r14
 MOV r7 r4
 
 //#-----End Update Tail-----
-
+print_addr
 
 //#Busy wait
 MOVI 0 r6
