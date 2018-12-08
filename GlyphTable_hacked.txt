@@ -3447,77 +3447,77 @@ E0
 03
 
 // TAIL_0 (GREEN) GLYPH 3C
-00
-00
-00
-00
-00
-00
-00
-00
+0C
+0C
+0C
+0C
+0C
+0C
+0C
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
-00
-00
-00
-00
-00
-00
-00
+0C
+0C
+0C
+0C
+0C
+0C
+0C
+0C
 
 //TAIL_1 (BLUE) GLYPH 3D
 00
@@ -3593,77 +3593,77 @@ E0
 00
 
 // BODY_0 (GREEN) GLYPH 3E
-00
-1C
-1C
-1C
-1C
-1C
-1C
-00
+0C
+0C
+0C
+0C
+0C
+0C
+0C
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
+0C
 1C
 1C
 1C
 1C
 1C
 1C
-00
+0C
 
-00
-1C
-1C
-1C
-1C
-1C
-1C
-00
+0C
+0C
+0C
+0C
+0C
+0C
+0C
+0C
 
 // BODY_1 (BLUE) GLYPH 3D
 00
