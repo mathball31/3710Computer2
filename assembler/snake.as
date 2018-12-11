@@ -57,10 +57,9 @@ OR r9 r6
 //calculate glyph_word, put in r6
 CMPI 1 r8
 // handle high vs low byte
-//TODO
 JMP_IMM 0x12e r14 NE
     //glyph is in low_byte
-    //check r11
+    //check r11 for overlap
     MOVI 0x39 r10
     AND r11 r10
     XORI 0x38 r10
@@ -91,7 +90,7 @@ JMP_IMM 0x12e r14 NE
     JMP_IMM 0x14e r14 UC
     print_addr
 //glyph is in high_byte
-    //check r12
+    //check r12 for overlap
     MOVI 0x39 r10
     MOV r12 r14
     LRSHI 8 r14
@@ -358,7 +357,8 @@ MOVI 0x2 r7
 AND r13 r7
 CMPI 0 r13
 //skip tail if we ate food
-JMP_IMM 0x1090 r14 NE
+//TODO
+JMP_IMM 0x1093 r14 NE
 
 
 //#-----End Overlap-----
@@ -386,6 +386,7 @@ JMP_REL 8 r14 NE
     MOVI 0xC0 r9
     AND r8 r9
     LRSHI 6 r9
+    //r9 has tail direction
 
 MOV_IMM 0x3F00 r14
 STOR r9 r14
@@ -423,6 +424,61 @@ JAL_IMM 0x300 r14
 MOV r7 r4
 
 //#-----End Update Tail-----
+JMP_IMM 0x10b7 r14 UC
+print_addr
+//TODO jmp past update food
+//#-----Update Food-----
+MOV_IMM 0x3F01 r14
+LOAD r12 r14
+//update counter
+ADDI 1 r12
+//#r12 has food counter
+//get a glyph pointer 
+LOAD r6 r12
+CMPI 0 r6 
+//retry if result == 0
+JMP_REL -3 r14 EQ
+//Check that the memory address is in frame buffer
+MOV_IMM 0x0FFE r7
+AND r6 r7
+LRSHI 1 r7
+//#r7 has an offset from frame_buffer
+MOV_IMM 0x0840 r8
+CMP r7 r8
+//jump to start & get a new num if r7 > r8 (maybe)
+JMP_REL -12 r14 HI
+//TODO
+
+MOV_IMM 0x3140 r14
+ADD r14 r7
+//#r7 has food_ptr
+//check that word doesn't have any overlap
+LOAD r10 r7
+//#r10 has food_destination_word
+CMPI 0 r10
+//retry if word has a glyph in it already
+JMP_REL -21 r14 NE
+
+MOVI 1 r8
+AND r6 r8
+//#r8 has food_byte
+MOVI 0x39 r9
+//#r9 has food_num
+
+//#store counter
+MOV_IMM 0x3F01 r14
+STOR r12 r14
+
+//#call
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byt), r9(glyph_num))
+JAL_IMM 0x100 r14
+//#r7 has glyph_ptr
+
+
+
+
+
+//#-----End Update Food-----
 print_addr
 
 //#Busy wait
@@ -434,10 +490,19 @@ NOP
 NOP
 NOP
 NOP
+CMP r7 r6
+JMP_REL -7 r14 LT
+
+MOVI 0 r6
+MOV_IMM 39900 r7
+ADDI 1 r6
+NOP
+NOP
+NOP
 NOP
 NOP
 CMP r7 r6
-JMP_REL -10 r14 LT
+JMP_REL -7 r14 LT
 
 
 //#---------End Main Loop---------

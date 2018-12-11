@@ -11,6 +11,8 @@ End of Frame_buffer:    0x3960
 
 
 Start of variable memory: 0x3F00
+0x3F00: tail direction
+0x3F01: food counter
 End of memory: 0x3FFF
 
 
