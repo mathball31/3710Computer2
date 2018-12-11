@@ -6,6 +6,8 @@ Start of code: 0x000
 
 End of code:
 
+Start of Frame_buffer copy: 0x2000
+End of Frame_buffer copy:    0x2960
 Start of Frame_buffer:  0x3000
 End of Frame_buffer:    0x3960
 
