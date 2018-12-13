@@ -46,10 +46,13 @@ MOV_IMM 0x0974 r4
 //#init tail_1
 MOV_IMM 0x099C r5
 
-//#wait until input
+//#wait until start
 SNES 0 r0
-CMPI 0 r0
-JMP_REL -2 r14 EQ
+CMPI 8 r0
+JMP_REL 6 r14 EQ
+SNES 1 r1
+CMPI 8 r1
+JMP_REL -7 r14 NE
 
 //#r2 has head_0 initial value
 //#---------End Start/Init---------
@@ -247,6 +250,23 @@ JMP r15 UC
 
 //# void reset_screen()
 @500
+//wait for start
+SNES 0 r0
+CMPI 8 r0
+JMP_REL 6 r14 EQ
+SNES 1 r1
+CMPI 8 r1
+JMP_REL -7 r14 NE
+
+
+//wait until no button presses
+SNES 0 r0
+SNES 1 r1
+OR r1 r0
+CMPI 0 r0
+JMP_REL -4 r14 NE
+
+
 MOV_IMM 0x2000 r6
 MOV_IMM 0x3000 r7
 MOV_IMM 0x2960 r8
@@ -256,6 +276,35 @@ LOAD r9 r6
 STOR r9 r7
 CMP r6 r8
 JMP_REL -5 r14 LT
+//#return
+JMP r15 UC
+
+
+//# void busy_wait()
+@600
+//#Busy wait
+MOVI 0 r6
+MOV_IMM 39900 r7
+ADDI 1 r6
+NOP
+NOP
+NOP
+NOP
+NOP
+CMP r7 r6
+JMP_REL -7 r14 LT
+
+MOVI 0 r6
+MOV_IMM 39900 r7
+ADDI 1 r6
+NOP
+NOP
+NOP
+NOP
+NOP
+CMP r7 r6
+JMP_REL -7 r14 LT
+
 //#return
 JMP r15 UC
 
@@ -389,8 +438,27 @@ AND r6 r13
 MOVI 0x1 r7
 AND r13 r7
 CMPI 0 r7
-JMP_REL 7 r14 EQ
+//TODO
+JMP_REL 28 r14 EQ
+    MOV_IMM 0x3044 r7
+    MOVI 0 r8
+    MOVI 0x21 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
+
+    MOV_IMM 0x3045 r7
+    MOVI 0 r8
+    MOVI 0x13 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
+
+    MOV_IMM 0x3046 r7
+    MOVI 0 r8
+    MOVI 0x18 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
     //# void reset_screen()
+    //#call 
     JAL_IMM 0x500 r14
     JMP_IMM 0x0 r14 UC
 
@@ -399,7 +467,7 @@ AND r13 r7
 CMPI 0 r13
 //skip tail if we ate food
 //TODO
-JMP_IMM 0x1098 r14 NE
+JMP_IMM 0x10AD r14 NE
 
 
 //#-----End Overlap-----
@@ -465,7 +533,7 @@ JAL_IMM 0x300 r14
 MOV r7 r4
 
 //#-----End Update Tail-----
-JMP_IMM 0x10bc r14 UC
+JMP_IMM 0x10d1 r14 UC
 print_addr
 //TODO jmp past update food
 //#-----Update Food-----
@@ -644,8 +712,26 @@ AND r6 r13
 MOVI 0x1 r7
 AND r13 r7
 CMPI 0 r7
-JMP_REL 7 r14 EQ
+JMP_REL 28 r14 EQ
+    MOV_IMM 0x302f r7
+    MOVI 0 r8
+    MOVI 0x21 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
+
+    MOV_IMM 0x3030 r7
+    MOVI 0 r8
+    MOVI 0x13 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
+
+    MOV_IMM 0x3031 r7
+    MOVI 0 r8
+    MOVI 0x18 r9
+    //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+    JAL_IMM 0x0100 r14
     //# void reset_screen()
+    //#call 
     JAL_IMM 0x500 r14
     JMP_IMM 0x0 r14 UC
 
@@ -654,7 +740,7 @@ AND r13 r7
 CMPI 0 r13
 //skip tail if we ate food
 //TODO
-JMP_IMM 0x1154 r14 NE
+JMP_IMM 0x117e r14 NE
 
 
 //#-----End Overlap-----
@@ -720,7 +806,7 @@ JAL_IMM 0x300 r14
 MOV r7 r5
 
 //#-----End Update Tail-----
-JMP_IMM 0x1178 r14 UC
+JMP_IMM 0x11a2 r14 UC
 print_addr
 //TODO jmp past update food
 //#-----Update Food-----
