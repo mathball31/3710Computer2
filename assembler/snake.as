@@ -1,6 +1,7 @@
 //#---------Start/Init---------
 //Initialize head_0 starting location and direction
-MOV_IMM 0x61F4 r2
+MOV_IMM 0x6974 r2
+MOV_IMM 0x699C r3
 
 //put head_ptr in r7
 MOV_IMM 0x1FFE r7
@@ -21,8 +22,29 @@ MOV_IMM 0x3A r9
 //#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
 JAL_IMM 0x0100 r14
 
+//put head1_ptr in r7
+MOV_IMM 0x1FFE r7
+AND r3 r7
+LRSHI 1 r7
+//Frame buffer start
+MOV_IMM 0x3000 r14
+ADD r14 r7
+//#r7(glyph_ptr) is head1_ptr
+//put head_byte in r8
+MOV_IMM 0x0001 r8
+AND r3 r8
+//#r8(glyph_byte) is head_byte
+//put glyph.body_0 in r9
+MOV_IMM 0x3B r9
+//#r9(glyph_num) is glyph.body_0
+//#call 
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+JAL_IMM 0x0100 r14
+
 //#init tail_0
-MOV_IMM 0x01F4 r4
+MOV_IMM 0x0974 r4
+//#init tail_1
+MOV_IMM 0x099C r5
 
 //#wait until input
 SNES 0 r0
@@ -57,20 +79,23 @@ OR r9 r6
 //calculate glyph_word, put in r6
 CMPI 1 r8
 // handle high vs low byte
-JMP_IMM 0x12e r14 NE
+//TODO
+JMP_IMM 0x12f r14 NE
     //glyph is in low_byte
     //check r11 for overlap
-    MOVI 0x39 r10
+    MOVI 0x3F r10
     AND r11 r10
-    XORI 0x38 r10
     //#r10 has !game_glyph
-    CMPI 1 r10
+    CMPI 0x39 r10
     JMP_REL 6 r14 NE
+        //food
         MOV_IMM 0x2 r13
-        JMP_REL 12 r14 UC
+        JMP_REL 14 r14 UC
+    ANDI 0x38 r10
+    XORI 0x38 r10
     CMPI 0 r10
     JMP_REL 6 r14 NE
-        //overlapped
+        //overlapped non-food
         MOV_IMM 0x1 r13
         JMP_REL 3 r14 UC
     //no overlap
@@ -87,23 +112,25 @@ JMP_IMM 0x12e r14 NE
     AND r8 r6
     OR r12 r6
     //was 24
-    JMP_IMM 0x14e r14 UC
+    JMP_IMM 0x150 r14 UC
     print_addr
 //glyph is in high_byte
     //check r12 for overlap
-    MOVI 0x39 r10
+    MOVI 0x3F r10
     MOV r12 r14
     LRSHI 8 r14
     AND r14 r10
-    XORI 0x38 r10
     //#r10 has !game_glyph
-    CMPI 1 r10
+    CMPI 0x39 r10
     JMP_REL 6 r14 NE
+        //food
         MOV_IMM 0x2 r13
-        JMP_REL 12 r14 UC
+        JMP_REL 14 r14 UC
+    ANDI 0x38 r10
+    XORI 0x38 r10
     CMPI 0 r10
     JMP_REL 6 r14 NE
-        //overlapped
+        //overlapped non-food
         MOV_IMM 0x1 r13
         JMP_REL 3 r14 UC
     //no overlap
