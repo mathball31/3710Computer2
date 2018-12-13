@@ -1,7 +1,7 @@
 //#---------Start/Init---------
 //Initialize head_0 starting location and direction
 MOV_IMM 0x6974 r2
-MOV_IMM 0x699C r3
+MOV_IMM 0x499C r3
 
 //put head_ptr in r7
 MOV_IMM 0x1FFE r7
@@ -264,6 +264,7 @@ JMP r15 UC
 
 //#---------Main loop---------
 @1000
+//#---------Snake 0---------
 //read controllers
 SNES 0 r0
 //#r0 has SNES_0
@@ -519,7 +520,263 @@ JAL_IMM 0x100 r14
 
 
 //#-----End Update Food-----
+//#---------End Snake 0---------
 print_addr
+
+//#---------Snake 1---------
+//read controllers
+SNES 1 r1
+//#r1 has SNES_1
+
+//-----Set Direction-----
+//if snes0 has direction input, call function
+MOV_IMM 0x00F0 r6
+AND r1 r6
+LRSHI 4 r6
+CMPI 0 r6
+JMP_REL 17 r14 EQ
+    //r6 != 0
+    //#call
+    //#r6(2_bit_dir) 4bit_to_2bit(r6(4_bit_dir))
+    JAL_IMM 0x200 r14
+    //#r6 has 2bit snes dir
+    //put 2bit snake_dir in r7
+    MOV_IMM 0x6000 r7
+    AND r3 r7
+    LRSHI 13 r7
+    //#r7 has 2bit snake_dir
+    //#call
+    //#r6(2bit new_dir) get_dir(r6(2bit snes_dir), r7(2bit snake_dir))
+    JAL_IMM 0x400 r14
+    //#r6 has 2bit new_snake_dir
+    MOV_IMM 0x9FFF r7
+    AND r3 r7
+    //put dir in correct spot for r3
+    LLSHI 13 r6
+    OR r6 r7
+    MOV r7 r3
+    //#r3 has new direction
+    //r6 == 0
+//#-----End Set Direction-----
+
+    
+
+//#-----Write Body-----
+//put snake_dir in r6
+MOV_IMM 0x6000 r6
+AND r3 r6
+LRSHI 13 r6
+//#r6(dir) is snake_dir
+//put head_ptr in r7
+MOV_IMM 0x1FFE r7
+AND r3 r7
+LRSHI 1 r7
+//Frame buffer start
+MOV_IMM 0x3000 r14
+ADD r14 r7
+//#r7(glyph_ptr) is head_ptr
+//put head_byte in r8
+MOV_IMM 0x0001 r8
+AND r3 r8
+//#r8(glyph_byte) is head_byte
+//put glyph.body_1 in r9
+MOV_IMM 0x3F r9
+//#r9(glyph_num) is glyph.body_0
+//#call 
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+JAL_IMM 0x0100 r14
+//#-----End Write Body-----
+
+print_addr
+//#-----Update head_ptr-----
+//put snake_dir in r6
+MOV_IMM 0x6000 r6
+AND r3 r6
+MOV r6 r8
+//#r8 has snake_dir
+LRSHI 13 r6
+//#r6 has 2_bit snake_dir
+//put offset into r7
+MOV_IMM 0x1FFF r7
+AND r3 r7
+//#r7 has a copy of r3
+//#call
+//#r7(new_head location) update_ptr(r6(dir), r7(head_copy))
+JAL_IMM 0x300 r14
+//update r3
+MOV_IMM 0x1FFF r9
+AND r9 r7
+OR r8 r7
+MOV r7 r3
+//#r3 has a new value
+//#-----End Update head_ptr-----
+
+//#-----Write Head-----
+//put snes_dir in r6
+MOV_IMM 0x6000 r6
+AND r3 r6
+LRSHI 13 r6
+//#r6(dir) is 2bit snake_dir
+//put head_ptr in r7
+MOV_IMM 0x1FFE r7
+AND r3 r7
+LRSHI 1 r7
+//Frame buffer start
+MOV_IMM 0x3000 r14
+ADD r14 r7
+//#r7(glyph_ptr) is head_ptr
+//put head_byte in r8
+MOV_IMM 0x0001 r8
+AND r3 r8
+//#r8(glyph_byte) is head_byte
+//put glyph.head_1 in r9
+MOV_IMM 0x3B r9
+//#r9(glyph_num) is glyph.head_1
+//#call 
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byte), r9(glyph_num))
+JAL_IMM 0x0100 r14
+//#-----End Write Head-----
+
+//#-----Overlap-----
+
+MOVI 0x3 r6
+AND r6 r13
+MOVI 0x1 r7
+AND r13 r7
+CMPI 0 r7
+JMP_REL 7 r14 EQ
+    //# void reset_screen()
+    JAL_IMM 0x500 r14
+    JMP_IMM 0x0 r14 UC
+
+MOVI 0x2 r7
+AND r13 r7
+CMPI 0 r13
+//skip tail if we ate food
+//TODO
+JMP_IMM 0x1154 r14 NE
+
+
+//#-----End Overlap-----
+//#-----Get tail dir-----
+MOV_IMM 0x1FFE r6
+AND r5 r6
+LRSHI 1 r6
+MOV_IMM 0x3000 r14
+ADD r14 r6
+//#r6 has tail glyph_ptr
+MOVI 0x01 r7
+AND r5 r7
+//#r7 has glyph_byte
+LOAD r8 r6
+//#r8 has glyph_word
+CMPI 0 r7
+JMP_REL 8 r14 NE
+    //#in high byte
+    MOV_IMM 0xC000 r9
+    AND r8 r9
+    LRSHI 14 r9
+    //r9 has tail direction
+    JMP_REL 4 r14 UC
+//#in low byte
+    MOVI 0xC0 r9
+    AND r8 r9
+    LRSHI 6 r9
+    //r9 has tail direction
+
+MOV_IMM 0x3F00 r14
+STOR r9 r14
+//#-----End Get tail dir-----
+
+//#-----Write Tail-----
+MOV_IMM 0x0 r6
+//#r6 has dir (0)
+MOV_IMM 0x9FFE r7
+AND r5 r7
+LRSHI 1 r7
+MOV_IMM 0x3000 r14
+ADD r14 r7
+//#r7 has tail_ptr
+MOVI 1 r8
+AND r5 r8
+//#r8 has tail_byte
+MOVI 0x00 r9
+//r9 is empty space glyph
+//#call
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byt), r9(glyph_num))
+JAL_IMM 0x100 r14
+//#-----End Write Tail-----
+
+//#-----Update Tail-----
+
+MOV_IMM 0x3F00 r14
+LOAD r6 r14
+//#r6 has dir for tail
+MOV r5 r7
+
+//#call
+//#r7(new_head location) update_ptr(r6(dir), r7(head_copy))
+JAL_IMM 0x300 r14 
+MOV r7 r5
+
+//#-----End Update Tail-----
+JMP_IMM 0x1178 r14 UC
+print_addr
+//TODO jmp past update food
+//#-----Update Food-----
+MOV_IMM 0x3F01 r14
+LOAD r12 r14
+//update counter
+ADDI 1 r12
+//#r12 has food counter
+//get a glyph pointer 
+LOAD r6 r12
+CMPI 0 r6 
+//retry if result == 0
+JMP_REL -3 r14 EQ
+//Check that the memory address is in frame buffer
+MOV_IMM 0x0FFE r7
+AND r6 r7
+LRSHI 1 r7
+//#r7 has an offset from frame_buffer
+MOV_IMM 0x0840 r8
+CMP r7 r8
+//jump to start & get a new num if r7 > r8 (maybe)
+JMP_REL -12 r14 HI
+//TODO
+
+MOV_IMM 0x3140 r14
+ADD r14 r7
+//#r7 has food_ptr
+//check that word doesn't have any overlap
+LOAD r10 r7
+//#r10 has food_destination_word
+CMPI 0 r10
+//retry if word has a glyph in it already
+JMP_REL -21 r14 NE
+
+MOVI 1 r8
+AND r6 r8
+//#r8 has food_byte
+MOVI 0x39 r9
+//#r9 has food_num
+
+//#store counter
+MOV_IMM 0x3F01 r14
+STOR r12 r14
+
+//#call
+//#set_glyph(r6(dir), r7(glyph_ptr), r8(glyph_byt), r9(glyph_num))
+JAL_IMM 0x100 r14
+//#r7 has glyph_ptr
+
+
+
+
+
+//#-----End Update Food-----
+print_addr
+//#---------End Snake 1---------
 
 //#Busy wait
 MOVI 0 r6
