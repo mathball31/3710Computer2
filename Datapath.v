@@ -21,11 +21,11 @@
 /*
 This module handles the interactions between the ALU and register file.
 */
-module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bright, rgb, slowClk);
+module Datapath(clk, reset, serial_data, serial_data1, snes_clk, snes_clk1, data_latch, data_latch1, hSync, vSync, bright, rgb, slowClk);
 	parameter ADDR_WIDTH = 14;
 	
-	input clk, reset, serial_data;
-	output snes_clk, data_latch;
+	input clk, reset, serial_data, serial_data1;
+	output snes_clk, snes_clk1, data_latch, data_latch1;
 	output hSync, vSync, bright, slowClk;
 	output [7:0] rgb;
 	
@@ -49,7 +49,7 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	wire [15:0] mem_out_a, mem_out_b;
 	wire [15:0] reg_input = alu_sel ? alu_bus : mem_out_a;	
 	
-	wire [11:0] button_data;
+	wire [11:0] button_data, button_data1;
 	wire clk_1200;
 	
 	
@@ -68,12 +68,14 @@ module Datapath(clk, reset, serial_data, snes_clk, data_latch, hSync, vSync, bri
 	
 	Clock_1200kHz clock_1200kHz(clk, !reset, clk_1200);
 	
-	SNES_Control snes_control(clk_1200, !reset, serial_data, snes_clk, data_latch, button_data);
+	SNES_Control snes_control0(clk_1200, !reset, serial_data, snes_clk, data_latch, button_data);
+	SNES_Control snes_control1(clk_1200, !reset, serial_data1, snes_clk1, data_latch1, button_data1);
+
 	
 	// TODO Will fill in data_b and addr_b later for VGA (maybe?)
 	Memory #(.DATA_WIDTH(16), .ADDR_WIDTH(ADDR_WIDTH)) mem(clk, w_en_a, w_en_b, mux_B_out, data_b, pc_mux_out, addr_b, mem_out_a, mem_out_b);
 	
-	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+	FSM #(.ADDR_WIDTH(ADDR_WIDTH)) fsm(clk, !reset, mem_out_a, flags_out, pc_out, button_data, button_data1, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 		w_en_a, w_en_b, reg_en, flag_en, pc_en, pc_ld);
 		
 	VGA #(.ADDR_WIDTH(ADDR_WIDTH)) vga(clk, !reset, mem_out_b, hSync, vSync, bright, rgb, slowClk, addr_b);

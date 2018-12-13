@@ -1,13 +1,13 @@
 
 
-module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_data, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
+module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_data, snes_data1, opcode, mux_A_sel, mux_B_sel, alu_sel, pc_sel, 
 	mem_w_en_a, mem_w_en_b, reg_en, flag_en, pc_en, pc_ld);
 
 	input clk, reset;
 	input [15:0] mem_in;
 	input [4:0] flags;
 	input [ADDR_WIDTH-1:0] pc_ins;
-	input [11:0] snes_data;
+	input [11:0] snes_data, snes_data1;
 	output reg [15:0] opcode, reg_en;
 	output reg [3:0] mux_A_sel, mux_B_sel;
 	output reg pc_sel, mem_w_en_a, mem_w_en_b, flag_en, alu_sel, pc_en, pc_ld;
@@ -16,6 +16,7 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 	reg [4:0] state;
 	reg [15:0] instruction;
 	reg [ADDR_WIDTH-1:0] old_pc;
+	reg snes_num;
 	
 	parameter RESET		= 5'b00000;
 	parameter FETCH_1 	= 5'b00001;
@@ -324,7 +325,15 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 			begin
 				// TODO select snes_data based on insruction[3:0]
 				// MOVI button_data[7:0] r[instruction[11:8]]
-				instruction = {4'b1101, instruction[11:8], snes_data[7:0]};	
+				snes_num = instruction[0];
+				if (snes_num)
+				begin
+					instruction = {4'b1101, instruction[11:8], snes_data1[7:0]};	
+				end
+				else
+				begin
+					instruction = {4'b1101, instruction[11:8], snes_data[7:0]};
+				end
 				state = SNES_2;
 			end
 			
@@ -342,7 +351,14 @@ module FSM #(parameter ADDR_WIDTH = 12)(clk, reset, mem_in, flags, pc_ins, snes_
 			SNES_3:
 			begin
 				// LUI button_data[11:8] r[instruction[11:8]]
-				instruction = {4'b1111, instruction[11:8], 4'b0, snes_data[11:8]};
+				if (snes_num)
+				begin
+					instruction = {4'b1111, instruction[11:8], 4'b0, snes_data1[11:8]};
+				end
+				else
+				begin
+					instruction = {4'b1111, instruction[11:8], 4'b0, snes_data[11:8]};
+				end
 				state = R_TYPE;
 			end
 			
